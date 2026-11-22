@@ -21,8 +21,9 @@ git clone --depth 1 https://github.com/ValveSoftware/counter-strike_regional_sta
 
 ## Model
 - Matchup probability = logit average of Elo, Glicko-2, TrueSkill and time-weighted Bradley-Terry.
-- Model zoo (538 top-tier matches since Mar 2026, walk-forward): all raters ~0.645-0.652 log-loss,
-  differences within bootstrap noise; all significantly beat Valve VRS (0.674).
+- Model zoo (560 matches between top-rated teams since March 2026, prior-day ratings): four raters
+  scored 0.6437 log-loss, Elo plus Bradley–Terry 0.6446, and the tuned Valve VRS baseline 0.6719.
+  The test does not establish an advantage for four raters over two.
 - Swiss stage Monte Carlo (Buchholz pairings, Bo1/Bo3 rules) -> pick optimiser maximising P(>=5 correct).
 
 ## Data
@@ -30,8 +31,10 @@ Valve VRS repo (match history), Liquipedia API (participants, seeds, stand-ins; 
 
 ## During the Major
 Rerun `python -m cs2p.run` after each round. Stage pages are refreshed from Liquipedia (cached 15 min),
-finished matches are replayed exactly and the rest of the event is re-simulated. Picks for a stage are
-frozen to `outputs/picks_stageN.json` once that stage starts, so the site can score them live.
+finished matches are replayed and the rest of the event is re-simulated. The report scores only a
+card saved before PGL's scheduled stage opener. Missing cards stay unscored when the results feed
+arrives late. Pre-cutoff Swiss snapshots include the matchup matrix, seed and Elo baseline cards,
+and provenance for the data and model.
 Stage 2/3 seeding follows the official rule (invites 1-8 by VRS, qualifiers 9-16 by record + Buchholz).
 
 ## Reddit sentiment (optional)

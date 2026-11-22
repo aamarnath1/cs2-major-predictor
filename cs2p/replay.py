@@ -2,11 +2,13 @@
 
 For every stage in data/processed/past_major_stages.json, ratings are rebuilt from matches
 strictly before the stage start, picks are optimised, then scored against the real records.
-Caveat: Elo/BT hyperparameters were tuned on Jul 2025-Feb 2026 data, which postdates some
-replayed stages. That can only flatter the model; the seed baseline uses no tuning at all.
+Caveat: Elo/BT hyperparameters were tuned on Jul 2025-Feb 2026 data, which overlaps or
+postdates some replayed stages. The seed baseline uses no tuning.
 """
 
 import json
+from collections import Counter
+from typing import Literal
 
 import numpy as np
 import pandas as pd
@@ -18,6 +20,16 @@ from cs2p.swiss import ADV, ADV_30, ELIM, ELIM_03, simulate
 
 
 MIN_HISTORY_MONTHS = 6  # ratings need history; the data starts Feb 2024
+
+
+def swiss_format(stage: dict) -> Literal["mixed", "all_bo3"]:
+    """Identify the format from round and series lengths in a complete cached stage."""
+    formats = Counter((m.get("round"), m.get("best_of")) for m in stage.get("matches", []))
+    if formats == {(1, 3): 8, (2, 3): 8, (3, 3): 8, (4, 3): 6, (5, 3): 3}:
+        return "all_bo3"
+    if formats == {(1, 1): 8, (2, 1): 8, (3, 1): 4, (3, 3): 4, (4, 3): 6, (5, 3): 3}:
+        return "mixed"
+    raise ValueError(f"Unknown or incomplete Swiss format for {stage['event']} {stage['stage']}")
 
 
 def actual_codes(teams: list[dict]) -> np.ndarray:
@@ -51,13 +63,15 @@ def main(n_sims: int = 10_000) -> None:
         if start < m.date.min() + pd.DateOffset(months=MIN_HISTORY_MONTHS):
             print(f"skip {st['event']} {st['stage']}: under {MIN_HISTORY_MONTHS} months of prior data")
             continue
+        match_format = swiss_format(st)
         roster = [(t["name"], t["name"]) for t in teams]
         P, per = matchup_matrix(m, roster, start, {})
         actual = actual_codes(teams)
         strategies = {"Ensemble (optimised)": P, **{f"{r} (optimised)": per[r] for r in RATERS}}
-        res = {"event": st["event"], "stage": st["stage"], "start": str(start.date())}
+        res = {"event": st["event"], "stage": st["stage"], "start": str(start.date()),
+               "format": match_format}
         for name, Pm in strategies.items():
-            out = simulate(Pm.values, n_sims=n_sims, seed=11)
+            out = simulate(Pm.values, n_sims=n_sims, seed=11, all_bo3=match_format == "all_bo3")
             picks, (p5, _) = optimise(out)
             res[name] = correct(picks, actual)
             if name.startswith("Ensemble"):

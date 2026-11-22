@@ -2,8 +2,8 @@
 
 Rules (PGL Singapore 2026, per Liquipedia):
 - Round 1: seed i vs seed i+8.
-- Later rounds: teams grouped by record; within a group sorted by Buchholz
-  (sum of opponents' W-L) then initial seed; highest plays lowest, avoiding rematches.
+- Later rounds: teams grouped by record, sorted by Buchholz (sum of opponents' W-L)
+  then initial seed. Rounds 2-3 pair high with low and rounds 4-5 use Valve's table.
 - Stages 1-2: elimination/advancement matches Bo3, the rest Bo1. Stage 3: all Bo3.
 - 3 wins advance, 3 losses eliminated.
 
@@ -17,6 +17,26 @@ ADV_30, ADV, ELIM_03, ELIM = 0, 1, 2, 3
 
 # fixed_rounds: one list per played/announced round of (team_a, team_b, winner or None).
 FixedRounds = list[list[tuple[int, int, int | None]]]
+
+# Valve Major Supplemental Rulebook, Swiss Bracket. Each row lists a candidate
+# opponent set for the six teams in group seed order.
+LATE_PAIRING_PRIORITY = (
+    ((1, 6), (2, 5), (3, 4)),
+    ((1, 6), (2, 4), (3, 5)),
+    ((1, 5), (2, 6), (3, 4)),
+    ((1, 5), (2, 4), (3, 6)),
+    ((1, 4), (2, 6), (3, 5)),
+    ((1, 4), (2, 5), (3, 6)),
+    ((1, 6), (2, 3), (4, 5)),
+    ((1, 5), (2, 3), (4, 6)),
+    ((1, 3), (2, 6), (4, 5)),
+    ((1, 3), (2, 5), (4, 6)),
+    ((1, 4), (2, 3), (5, 6)),
+    ((1, 3), (2, 4), (5, 6)),
+    ((1, 2), (3, 6), (4, 5)),
+    ((1, 2), (3, 5), (4, 6)),
+    ((1, 2), (3, 4), (5, 6)),
+)
 
 
 def bo1_from_bo3(p: np.ndarray) -> np.ndarray:
@@ -48,6 +68,27 @@ def _pair(group: list[int], played: set) -> list[tuple[int, int]] | None:
             rest = _pair(group[1:j] + group[j + 1 :], played)
             if rest is not None:
                 return [(a, b)] + rest
+    return None
+
+
+def _late_pair(
+    group: list[int], played: set[tuple[int, int]], fixed: list[tuple[int, int, int | None]]
+) -> list[tuple[int, int]] | None:
+    """Choose the first legal table row consistent with published pairs."""
+    positions = {team: i + 1 for i, team in enumerate(group)}
+    if any((a in positions) != (b in positions) for a, b, _ in fixed):
+        return None
+    confirmed = {
+        tuple(sorted((positions[a], positions[b])))
+        for a, b, _ in fixed
+        if a in positions and b in positions
+    }
+    for row in LATE_PAIRING_PRIORITY:
+        if not confirmed.issubset(row):
+            continue
+        pairs = [(group[a - 1], group[b - 1]) for a, b in row]
+        if all((a, b) not in played and (b, a) not in played for a, b in pairs):
+            return [pair for ix, pair in zip(row, pairs) if ix not in confirmed]
     return None
 
 
@@ -109,9 +150,14 @@ def run_stage(
         buch = [sum(wins[o] - losses[o] for o in opps[t]) for t in range(n)]
         pairs = []
         for rec in sorted({(wins[t], losses[t]) for t in alive}, reverse=True):
-            group = sorted((t for t in alive if (wins[t], losses[t]) == rec and t not in busy),
+            group = sorted((t for t in alive if (wins[t], losses[t]) == rec),
                            key=lambda t: (-buch[t], t))
-            got = _pair(group, played) or [(group[i], group[-1 - i]) for i in range(len(group) // 2)]
+            got = _late_pair(group, played, fixed) if rnd >= 3 and len(group) == 6 else None
+            if got is None:
+                remaining = [t for t in group if t not in busy]
+                got = _pair(remaining, played) or [
+                    (remaining[i], remaining[-1 - i]) for i in range(len(remaining) // 2)
+                ]
             pairs += [(a, b, None) for a, b in got]
         pairs = list(fixed) + pairs
     buch = [sum(wins[o] - losses[o] for o in opps[t]) for t in range(n)]

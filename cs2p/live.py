@@ -34,17 +34,6 @@ def _team_maps() -> tuple[dict, dict]:
     return tmap, dict(zip(tm.code, tm.liquipedia_name))
 
 
-@functools.cache
-def _latest_vrs() -> dict[str, float]:
-    pts = pd.read_csv(PROC / "vrs_points.csv", parse_dates=["snapshot"])
-    return pts[pts.snapshot == pts.snapshot.max()].groupby("team").points.max().to_dict()
-
-
-def vrs_order(display_names: list[str]) -> list[str]:
-    last, vrs = _latest_vrs(), dict(ALL_TEAMS)
-    return sorted(display_names, key=lambda t: -last.get(vrs[t], 0))
-
-
 def fetch_state(max_age_h: float = 0.25) -> dict[int, dict]:
     """Return {stage: {seeds, matches, status}} with team names as display names."""
     pages = fetch_pages(list(STAGE_PAGES.values()) + [PLAYOFF_PAGE], max_age_h=max_age_h)  # refresh cache
@@ -145,7 +134,7 @@ def simulate_major(P: pd.DataFrame, state: dict, n: int, seed: int = 1) -> dict:
             if state[s]["seeds"]:
                 field = state[s]["seeds"]
             else:
-                field = vrs_order([d for d, _ in INVITES[s]]) + qualifiers
+                field = [d for d, _ in INVITES[s]] + qualifiers
             ix = [col[t] for t in field]
             c, order = run_stage(Pv[np.ix_(ix, ix)], rng, all_bo3=(s == 3), fixed_rounds=fixed[s])
             codes[s][i, ix] = c

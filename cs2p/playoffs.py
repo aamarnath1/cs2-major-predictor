@@ -40,11 +40,18 @@ def all_brackets() -> list[list[int]]:
 
 
 def optimise_bracket(winners: np.ndarray) -> tuple[list[int], np.ndarray]:
-    """Bracket maximising expected correct picks. Returns (picks, distribution of correct 0..7)."""
-    best, best_score, best_dist = None, -1.0, None
-    for b in all_brackets():
-        correct = (winners == np.array(b)).sum(axis=1)
-        if correct.mean() > best_score:
-            best, best_score = b, correct.mean()
-            best_dist = np.bincount(correct, minlength=8) / len(correct)
+    """Maximise all three Pick'em challenges, breaking ties with expected hits."""
+    best, best_score, best_dist = [], (-1.0, -1.0), np.array([])
+    for bracket in all_brackets():
+        correct = winners == np.array(bracket)
+        hits = correct.sum(axis=1)
+        score = (float(playoff_challenge(correct).mean()), float(hits.mean()))
+        if score > best_score:
+            best, best_score = bracket, score
+            best_dist = np.bincount(hits, minlength=8) / len(hits)
     return best, best_dist
+
+
+def playoff_challenge(correct: np.ndarray) -> np.ndarray:
+    """Return whether each simulation clears the quarterfinal, semifinal and final challenges."""
+    return (correct[:, :4].sum(1) >= 2) & correct[:, 4:6].any(1) & correct[:, 6]

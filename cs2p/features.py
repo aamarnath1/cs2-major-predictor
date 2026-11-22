@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 import trueskill
 
-from cs2p.elo import PROC, Elo, EloParams
+from cs2p.elo import PROC, Elo, EloParams, win_prob
 
 # ---------------------------------------------------------------- Glicko-2
 G2_SCALE = 173.7178
@@ -120,10 +120,14 @@ def vrs_lookup(dates: pd.Series) -> callable:
     return get
 
 
-def build_features(m: pd.DataFrame, start: pd.Timestamp | None = None) -> tuple[pd.DataFrame, dict]:
+def build_features(
+    m: pd.DataFrame, start: pd.Timestamp | None = None, *, batch_by_day: bool = False
+) -> tuple[pd.DataFrame, dict]:
     """Return (one feature row per match with winner = side a, final rater states).
 
     Only matches on/after `start` are emitted as rows; all matches update the raters.
+    With `batch_by_day`, predictions use prior-day ratings and context. Same-day
+    results update the state after every prediction for that day, in canonical order.
     """
     elo = Elo(EloParams(**json.loads((PROC / "elo_params.json").read_text())))
     gl = Glicko2()
@@ -133,48 +137,60 @@ def build_features(m: pd.DataFrame, start: pd.Timestamp | None = None) -> tuple[
     games: dict = defaultdict(int)
     last: dict = {}
     vrs = vrs_lookup(m.date)
+    if batch_by_day:
+        canonical = m.assign(date=m.date.dt.normalize()).sort_values(
+            ["date", "winner", "loser", "winner_roster", "loser_roster"], kind="stable"
+        )
+        batches = (
+            group.itertuples(index=False) for _, group in canonical.groupby("date", sort=False)
+        )
+    else:
+        batches = ((r,) for r in m.itertuples(index=False))
     rows = []
-    for r in m.itertuples(index=False):
-        w, l, d = r.winner.casefold(), r.loser.casefold(), r.date
-        emit = start is None or d >= start
-        if emit:
-            row = {"date": d, "a": w, "b": l}
-            # Elo (pre-match, after inactivity decay) — Elo.update returns pre-match prob.
-            row["elo_a"] = elo.current(w, d)
-            row["elo_b"] = elo.current(l, d)
-            pg, ga, gb = gl.expect(w, l, d)
-            row.update(glicko_p=pg, glicko_a=ga, glicko_b=gb,
-                       glicko_rd_a=gl._get(w, d)[1], glicko_rd_b=gl._get(l, d)[1])
+    for batch in batches:
+        updates = []
+        for r in batch:
+            w, l, d = r.winner.casefold(), r.loser.casefold(), r.date
+            row = None
+            if start is None or d >= start:
+                row = {"date": d, "a": w, "b": l}
+                row["elo_a"] = elo.current(w, d)
+                row["elo_b"] = elo.current(l, d)
+                pg, ga, gb = gl.expect(w, l, d)
+                row.update(glicko_p=pg, glicko_a=ga, glicko_b=gb,
+                           glicko_rd_a=gl._get(w, d)[1], glicko_rd_b=gl._get(l, d)[1])
+                ta, tb = ts.get(w, TS.create_rating()), ts.get(l, TS.create_rating())
+                row.update(ts_p=ts_win_prob(ta, tb), ts_mu_a=ta.mu, ts_mu_b=tb.mu,
+                           ts_sig_a=ta.sigma, ts_sig_b=tb.sigma)
+                for side, t in (("a", w), ("b", l)):
+                    hh = hist[t]
+                    last10 = list(hh)[-10:]
+                    row[f"form10_{side}"] = np.mean([x[1] for x in last10]) if last10 else 0.5
+                    recent = [x for x in hh if (d - x[0]).days <= 60]
+                    row[f"form60_{side}"] = np.mean([x[1] for x in recent]) if recent else 0.5
+                    row[f"sos10_{side}"] = np.mean([x[2] for x in last10]) if last10 else 1300.0
+                    row[f"games_{side}"] = games[t]
+                    row[f"idle_{side}"] = min((d - last[t]).days, 365) if t in last else 365
+                    row[f"vrs_{side}"] = vrs(t, d)
+                past = [x for x in h2h[frozenset((w, l))] if (d - x[0]).days <= 365]
+                row["h2h_n"] = len(past)
+                row["h2h_a"] = sum(1 for x in past if x[1] == w)
+                if batch_by_day:
+                    row["elo_p"] = win_prob(row["elo_a"], row["elo_b"], elo.p.scale)
+                rows.append(row)
+            updates.append((r, w, l, d, row, elo.current(w, d), elo.current(l, d)))
+        for r, w, l, d, row, elo_a_pre, elo_b_pre in updates:
+            row_p = elo.update(r.winner, r.loser, d, r.winner_roster, r.loser_roster)
+            if row is not None and not batch_by_day:
+                row["elo_p"] = row_p
+            gl.update(w, l, d)
             ta, tb = ts.get(w, TS.create_rating()), ts.get(l, TS.create_rating())
-            row.update(ts_p=ts_win_prob(ta, tb), ts_mu_a=ta.mu, ts_mu_b=tb.mu, ts_sig_a=ta.sigma, ts_sig_b=tb.sigma)
-            for side, t in (("a", w), ("b", l)):
-                hh = hist[t]
-                last10 = list(hh)[-10:]
-                row[f"form10_{side}"] = np.mean([x[1] for x in last10]) if last10 else 0.5
-                recent = [x for x in hh if (d - x[0]).days <= 60]
-                row[f"form60_{side}"] = np.mean([x[1] for x in recent]) if recent else 0.5
-                row[f"sos10_{side}"] = np.mean([x[2] for x in last10]) if last10 else 1300.0  # strength of schedule
-                row[f"games_{side}"] = games[t]
-                row[f"idle_{side}"] = min((d - last[t]).days, 365) if t in last else 365
-                row[f"vrs_{side}"] = vrs(t, d)
-            past = [x for x in h2h[frozenset((w, l))] if (d - x[0]).days <= 365]
-            row["h2h_n"] = len(past)
-            row["h2h_a"] = sum(1 for x in past if x[1] == w)
-            rows.append(row)
-        # ---- updates
-        elo_b_pre = elo.current(l, d)
-        elo_a_pre = elo.current(w, d)
-        row_p = elo.update(r.winner, r.loser, d, r.winner_roster, r.loser_roster)
-        if emit:
-            rows[-1]["elo_p"] = row_p
-        gl.update(w, l, d)
-        ta, tb = ts.get(w, TS.create_rating()), ts.get(l, TS.create_rating())
-        (ta,), (tb,) = TS.rate([(ta,), (tb,)], ranks=[0, 1])
-        ts[w], ts[l] = ta, tb
-        hist[w].append((d, 1.0, elo_b_pre))
-        hist[l].append((d, 0.0, elo_a_pre))
-        h2h[frozenset((w, l))].append((d, w))
-        games[w] += 1
-        games[l] += 1
-        last[w] = last[l] = d
+            (ta,), (tb,) = TS.rate([(ta,), (tb,)], ranks=[0, 1])
+            ts[w], ts[l] = ta, tb
+            hist[w].append((d, 1.0, elo_b_pre))
+            hist[l].append((d, 0.0, elo_a_pre))
+            h2h[frozenset((w, l))].append((d, w))
+            games[w] += 1
+            games[l] += 1
+            last[w] = last[l] = d
     return pd.DataFrame(rows), {"elo": elo, "glicko": gl, "ts": ts}

@@ -1,7 +1,7 @@
 """Model zoo: score many predictors on identical walk-forward splits.
 
-Every model predicts only matches in month M using information available before month M
-(online raters use strictly pre-match state; batch/learned models refit on the 1st of M).
+Online raters use information from earlier dates only. Batch/learned models refit
+on the first day of each month.
 Eval set = top-tier matches (both teams >= 1400 VRS points) since EVAL_FROM.
 """
 
@@ -16,7 +16,7 @@ from sklearn.preprocessing import StandardScaler
 
 from cs2p.backtest_bt import regions
 from cs2p.bt import fit_bt
-from cs2p.elo import PROC, EloParams, load_matches, run
+from cs2p.elo import PROC, load_matches
 from cs2p.features import build_features
 
 EVAL_FROM = pd.Timestamp("2026-03-01")
@@ -88,23 +88,22 @@ def flip(X: pd.DataFrame, rng: np.random.Generator) -> tuple[pd.DataFrame, np.nd
 
 def history_test(m: pd.DataFrame) -> list[dict]:
     """Does older data help? Elo trained from different start dates, scored on the same eval set."""
-    from cs2p.backtest import log_loss, vrs_baseline
+    from cs2p.backtest import log_loss
 
-    wp, lp = vrs_baseline(m)
-    ev = (m.date >= EVAL_FROM).values & (wp >= 1400) & (lp >= 1400)
-    params = EloParams(**json.loads((PROC / "elo_params.json").read_text()))
     out = []
     for cut in sorted({str(m.date.min().date()), "2024-08-01", "2025-02-01", "2025-08-01"}):
         keep = (m.date >= cut).values
-        _, p = run(m[keep].reset_index(drop=True), params)
-        out.append({"from": cut, "n_train": int(keep.sum()), "logloss": log_loss(p[ev[keep]])})
+        features, _ = build_features(m[keep], start=EVAL_FROM, batch_by_day=True)
+        ev = (features.vrs_a >= 1400) & (features.vrs_b >= 1400)
+        out.append({"from": cut, "n_train": int(keep.sum()),
+                    "logloss": log_loss(features.loc[ev, "elo_p"].to_numpy())})
     return out
 
 
 def main() -> None:
     m = load_matches()
     print("building features ...")
-    F, _ = build_features(m, start=TRAIN_FROM)
+    F, _ = build_features(m, start=TRAIN_FROM, batch_by_day=True)
     btp = json.loads((PROC / "bt_params.json").read_text())
     add_bt(F, m, btp["half_life_days"], btp["prior"])
     F.to_csv(PROC / "features.csv", index=False)
@@ -184,6 +183,7 @@ def main() -> None:
     print("LR coefficients (standardised):", importances.get("Logistic regression"))
 
     out = {"eval_n": int(ev.sum()), "cross_n": int(cross.sum()), "eval_from": str(EVAL_FROM.date()),
+           "chronology": "prior_days",
            "results": results, "lr_coef": importances.get("Logistic regression"), "history": history_test(m)}
     (PROC / "zoo.json").write_text(json.dumps(out, indent=2))
 
