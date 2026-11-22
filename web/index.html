@@ -263,12 +263,12 @@ footer a { color: var(--ink-2); }
   <p class="intro">How it works, what was tested, and where it can be wrong.</p>
   <div class="card"><ul class="plain" id="caveats"></ul></div>
   <details class="more"><summary>How the predictions are made</summary><div><ul class="plain">
-    <li><b>Ratings:</b> four classic rating systems (Elo, Glicko-2, TrueSkill, Bradley-Terry) are fitted on every pro match since CS2 launched, using Valve's ranking data and Liquipedia. Their predictions are averaged.</li>
-    <li><b>Simulation:</b> each Swiss stage is played with the official rules: round 1 is seed 1 vs 9, later rounds pair teams on the same record using the Buchholz tiebreaker, Bo1/Bo3 as scheduled, 3 wins to advance. Stages 2 and 3 are seeded the official way, and the playoffs use a Bo5 final.</li>
-    <li><b>Pick'em:</b> out of all possible 10-pick sets, we choose the one most likely to get 5+ correct. That's not the same as picking the 10 best teams.</li>
+    <li><b>Ratings:</b> we combine four team rating systems (Elo, Glicko-2, TrueSkill, Bradley-Terry) using available match history from Valve and Liquipedia.</li>
+    <li><b>Simulation:</b> the Swiss simulation groups teams with the same record and uses the Buchholz tiebreaker. Its late-round pairing order can differ from Valve's. The live forecast uses Bo1 and Bo3 as scheduled, and the playoffs use a Bo5 final.</li>
+    <li><b>Pick'em:</b> we try swaps and replacements to find a 10-team card with a higher simulated chance of getting 5+ correct.</li>
     <li><b>Live:</b> during the event, real results are locked in and only the remaining matches are simulated.</li>
   </ul></div></details>
-  <details class="more"><summary>Model comparison: 10 approaches tested on unseen matches</summary><div id="zooBox"></div></details>
+  <details class="more"><summary>Model comparison: 10 approaches tested on historical matches</summary><div id="zooBox"></div></details>
   <details class="more"><summary>Map pools: tested, didn't help</summary><div id="mapBox"></div></details>
   <details class="more"><summary>What the internet is saying (weak signal)</summary><div id="crowdBox"></div></details>
 </section>
@@ -547,8 +547,8 @@ function renderHeat() {
 function renderTrust() {
   const R = D.replay, z = D.zoo;
   if (R) {
-    const e = R.summary["Ensemble (optimised)"], sb = R.summary["Seed baseline"], v = R.vs_seed;
-    $("#trustIntro").innerHTML = `The obvious strategy is to follow the seeds. We replayed the last ${e.stages} Major stages as if they hadn't happened yet. Our picks got <b>${e.mean_correct.toFixed(1)}</b> right on average against <b>${sb.mean_correct.toFixed(1)}</b> for the seed picks, and earned the coin <b>${e.coins}</b> times against <b>${sb.coins}</b>. That's an edge, but a small one: ${v ? `we won ${v.wins} stages, tied ${v.ties} and lost ${v.losses}` : "it varies stage to stage"}. Treat these picks as a better default, not a guarantee.`;
+    const e = R.summary["Ensemble (optimised)"], sb = R.summary["Seed baseline"];
+    $("#trustIntro").innerHTML = `Across ${e.stages} historical stages, the model averaged <b>${e.mean_correct.toFixed(1)}</b> correct picks versus <b>${sb.mean_correct.toFixed(1)}</b> for the seed picks, and hit five correct <b>${e.coins}</b> times versus <b>${sb.coins}</b>. The sample spans four Majors. Some stages predate the model tuning cutoff, and the replay used the wrong match format for Cologne Stage 3. This comparison is exploratory.`;
     const el = $("#replay"), st = R.stages, W = Math.max(el.clientWidth, 300), rh = 28, L = Math.min(170, W * .5), H = st.length * rh + 30;
     const X = v => L + (W - L - 16) * v / 10;
     let out = `<svg width="${W}" height="${H}" role="img" aria-label="Correct picks per past stage"><line x1="${X(5)}" x2="${X(5)}" y1="0" y2="${H - 24}" stroke="${css("--accent")}" stroke-dasharray="4 4"/>`;
@@ -561,9 +561,9 @@ function renderTrust() {
   }
   const items = [];
   if (z) { const vrs = z.results.find(r => r.model === "VRS points"), best = z.results.find(r => r.model.startsWith("Ensemble 4")) || z.results[0];
-    items.push(`<b>Calling single matches:</b> on ${z.eval_n} recent top-tier matches it hadn't seen, the model picked the winner <b>${pct(best.acc)}</b> of the time, against ${pct(vrs.acc)} for Valve's official ranking.`); }
+    items.push(`<b>Calling single matches:</b> on ${z.eval_n} historical matches between top-rated teams, the model picked the winner <b>${pct(best.acc)}</b> of the time, against ${pct(vrs.acc)} for a baseline built from Valve rankings. Same-day match ordering is still being checked.`); }
   items.push(`<b>Why so modest?</b> CS2 is high-variance. No model can see a star's bad day or a surprise strat. Treat every number here as a likelihood, not a promise.`);
-  if (D.maps) items.push(`<b>Map pools didn't help.</b> We tested each team's strength on every map plus a full ban/pick simulation. It predicted no better, because vetoes let both sides dodge their weak maps.`);
+  if (D.maps) items.push(`<b>Map pools didn't help.</b> We tested each team's strength on every map plus a full ban/pick simulation. It showed no measurable improvement in that test.`);
   $("#trustFacts").innerHTML = items.map(x => `<li>${x}</li>`).join("");
 }
 
@@ -577,7 +577,7 @@ function renderMethod() {
     `<b>Stage 2 and 3 picks are previews</b> until their fields are confirmed. Everything reruns as results come in.`,
   ].map(x => `<li>${x}</li>`).join("");
   const z = D.zoo;
-  if (z) $("#zooBox").innerHTML = `<p class="small ink2">Each approach predicted a month of matches using only data from before that month (${z.eval_n} top-tier matches from ${z.eval_from}). <b>Log-loss</b> scores how good the probabilities are (lower is better), and <b>calibration error</b> is how far "70%" is from really winning 70% of the time. The top models are within luck of each other, so we average four of them.</p>
+  if (z) $("#zooBox").innerHTML = `<p class="small ink2">The comparison covers ${z.eval_n} top-tier matches from ${z.eval_from}. Some models refit monthly and others update match by match. The sources provide dates, so some same-day results may have been processed out of order. <b>Log-loss</b> scores how good the probabilities are (lower is better), and <b>calibration error</b> is how far "70%" is from really winning 70% of the time. The test did not separate the strongest models clearly. The live forecast averages four ratings.</p>
     <div class="scroll"><table class="tbl"><tr><th>Approach</th><th class="r">Log-loss</th><th class="r">Picks winner</th><th class="r">Calibration error</th></tr>${z.results.map(r => `<tr><td>${esc(r.model)}</td><td class="r num">${r.logloss.toFixed(4)}</td><td class="r num">${pct(r.acc, 1)}</td><td class="r num">${pct(r.ece, 1)}</td></tr>`).join("")}</table></div>`;
   const M = D.maps;
   if (M) $("#mapBox").innerHTML = `<p class="small ink2">Per-team map strengths from ${M.map_level.n.toLocaleString()} recent maps, plus Valve's Bo1 and Bo3 veto order, tuned on Jul 2025–Feb 2026 and tested on later matches. Map-level log-loss was ${M.map_level.with_map_offsets.logloss.toFixed(4)} with map strengths vs ${M.map_level.no_map_offsets.logloss.toFixed(4)} without. For best-of-one matches it was ${M.bo1.with_veto.logloss.toFixed(3)} vs ${M.bo1.no_veto.logloss.toFixed(3)}. No measurable gain, so it isn't used.</p>`;
