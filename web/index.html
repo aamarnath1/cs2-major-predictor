@@ -253,7 +253,7 @@ footer a { color: var(--ink-2); }
   <div class="eyebrow">Reality check</div>
   <h2>Can a model beat the seeds?</h2>
   <p class="intro" id="trustIntro"></p>
-  <div class="card"><div id="replay"></div><div class="legend"><span><i style="background:var(--accent)"></i>Our picks</span><span><i style="background:var(--mute)"></i>Picking purely by seed</span><span>Dashed line = 5 correct (coin)</span></div></div>
+  <div class="card"><div id="replay"></div><div class="legend"><span><i style="background:var(--accent)"></i>Our picks</span><span><i style="background:var(--mute)"></i>Picking purely by seed</span><span>Dashed line = 5 correct</span></div></div>
   <div class="card" style="margin-top:14px"><ul class="plain" id="trustFacts"></ul></div>
 </section>
 
@@ -370,8 +370,8 @@ function renderStage() {
   }).join("");
   const p5 = s.p_at_least_5;
   $("#sheet").innerHTML = `<div class="sheet">${cols}</div>
-    <div class="card verdict"><div><div class="muted small">${s.status === "upcoming" ? "Chance these picks earn the coin" : "Correct so far"}</div><div class="big num">${s.status === "upcoming" ? pct(p5) : `${hits}/10`}</div></div>
-      <div><div class="ink2">${s.status === "upcoming" ? `That's ${odds(p5)}. It sounds low, but no 10 picks do better: ${s.stage < 3 ? "single-map matches are close to coin flips" : "even best-of-threes throw up upsets"}. Most of the time you'll land on 3 or 4.` : `Projected finish: ${s.expected_correct.toFixed(1)} correct, with a ${pct(p5)} chance of the coin.`}</div><div id="dist" style="margin-top:8px"></div></div></div>
+    <div class="card verdict"><div><div class="muted small">${s.status === "upcoming" ? "Chance of 5+ correct" : "Correct so far"}</div><div class="big num">${s.status === "upcoming" ? pct(p5) : `${hits}/10`}</div></div>
+      <div><div class="ink2">${s.status === "upcoming" ? `That's ${odds(p5)}. Upsets make five correct picks difficult: ${s.stage < 3 ? "single-map matches are close to coin flips" : "even best-of-threes throw up upsets"}. Most of the time you'll land on 3 or 4.` : `Projected finish: ${s.expected_correct.toFixed(1)} correct, with a ${pct(p5)} chance of 5+ correct.`}</div><div id="dist" style="margin-top:8px"></div></div></div>
     <details class="more" id="builder"><summary>Build your own picks and compare</summary><div>
       <p class="small ink2">Tap a team to cycle it through <b>3-0 → Advance → 0-3 → none</b>. Your set is scored against ${s.outcomes.length.toLocaleString()} simulated stages.</p>
       <div class="chips" id="chips"></div>
@@ -389,7 +389,7 @@ function distBars(el, dist) {
   el.innerHTML = `<svg width="${W}" height="${H + 18}" role="img" aria-label="How many picks come true">${dist.slice(0, 11).map((v, i) => {
     const h = (H - 14) * v / max, x = i * bw;
     return `<rect x="${x + 2}" y="${H - h}" width="${bw - 4}" height="${h}" rx="2" fill="${i >= 5 ? css("--accent") : css("--line-2")}"><title>${i} correct: ${pct(v, 1)}</title></rect><text x="${x + bw / 2}" y="${H + 14}" text-anchor="middle">${i}</text>`;
-  }).join("")}</svg><div class="small muted">How many of the 10 come true across simulations (orange = coin)</div>`;
+  }).join("")}</svg><div class="small muted">How many of the 10 come true across simulations (orange = five or more)</div>`;
 }
 function scoreSet(s, picks) {
   const want = s.outcome_cols.map(t => picks[t] === undefined ? -1 : picks[t]);
@@ -410,7 +410,7 @@ function renderBuilder(s) {
   if (n[0] + n[1] + n[2] < 10) { $("#myScore").textContent = `${n[0]}/2 · ${n[1]}/6 · ${n[2]}/2 picked`; return; }
   const ours = {}; setOurs(s, ours);
   const m = scoreSet(s, mine), b = scoreSet(s, ours), d = m.p5 - b.p5;
-  $("#myScore").innerHTML = `Your set: <b>${pct(m.p5)}</b> chance of the coin (${d >= 0 ? "+" : ""}${(100 * d).toFixed(1)} pts vs ours)`;
+  $("#myScore").innerHTML = `Your set: <b>${pct(m.p5)}</b> chance of 5+ correct (${d >= 0 ? "+" : ""}${(100 * d).toFixed(1)} pts vs ours)`;
 }
 
 /* ---------------- playoffs ---------------- */
