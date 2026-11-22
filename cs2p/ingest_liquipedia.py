@@ -518,7 +518,7 @@ def collect_pages(tournaments: list[dict], extra: list[str]) -> list[dict]:
 
 
 def clean(name: str) -> str:
-    return re.sub(r"\s+", " ", html.unescape(name)).strip()
+    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", html.unescape(name))).strip()
 
 
 def lan_flag(kind: str) -> bool | None:

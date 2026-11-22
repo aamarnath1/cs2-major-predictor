@@ -453,6 +453,10 @@ function renderTrust() {
     const e = R.summary["Ensemble (optimised)"], sb = R.summary["Seed baseline"], v = R.vs_seed;
     items.push(`<b>Pick'em reality check:</b> replayed on ${e.stages} past Major stages, our picks averaged ${e.mean_correct.toFixed(1)} correct against ${sb.mean_correct.toFixed(1)} for picking purely by seed, and earned the coin ${e.coins} times against ${sb.coins}.${v ? ` We beat the seed picks in ${v.wins} stages, tied ${v.ties} and lost ${v.losses}. The 95% range for our edge (${v.ci[0] >= 0 ? "+" : ""}${v.ci[0].toFixed(1)} to +${v.ci[1].toFixed(1)} picks per stage) still includes zero.` : ""} So: a reasonable default, not a guaranteed edge.`);
   }
+  if (D.maps) {
+    const M = D.maps, b1 = M.bo1;
+    items.push(`<b>Map pools tested, no gain:</b> we modelled each team's strength on every map and simulated the ban/pick veto. On ${M.map_level.n.toLocaleString()} unseen maps it predicted no better than ignoring maps (log-loss ${M.map_level.with_map_offsets.logloss.toFixed(4)} vs ${M.map_level.no_map_offsets.logloss.toFixed(4)}), and best-of-one calls barely moved (${b1.with_veto.logloss.toFixed(3)} vs ${b1.no_veto.logloss.toFixed(3)}, ${b1.n} matches). Vetoes let both sides ban their weak maps, which cancels most map edges. So the picks don't use it.`);
+  }
   if (z && z.history) items.push(`<b>More data helps:</b> training on 33 months instead of 15 makes predictions measurably sharper.`);
   $("#findings").innerHTML = items.map(x => `<li>${x}</li>`).join("");
   if (R) renderReplay(R);
@@ -525,7 +529,7 @@ function renderCaveats() {
   const si = Object.keys(D.stand_ins).join(", ");
   $("#caveats").innerHTML = [
     `<b>Luck dominates Stage 1 and 2.</b> Most early matches are a single map, so upsets are common. Even a perfect model would miss the coin about 3 times in 4 at Stage 1.`,
-    `<b>No map data yet.</b> Teams have favourite and banned maps, which matters most in best-of-one. The model only sees who won, not where.`,
+    `<b>Map preferences aren't in the picks.</b> We tested a map-pool and veto model and it didn't predict better on unseen matches. If you know of a big map-pool mismatch (for example a team whose best map was just removed), trust your read.`,
     `<b>No player-level stats.</b> Individual form (a star in a slump, say) isn't captured.`,
     `<b>Stand-ins are not penalised</b> (${esc(si)}). Our backtests couldn't detect a roster-change effect, so the model treats these teams at full strength. Use your own judgement here.`,
     `<b>New rosters are uncertain.</b> GOSH (s1mple's team) has a short record under its old name, BC.Game.`,

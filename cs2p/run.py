@@ -238,6 +238,7 @@ def export(m: pd.DataFrame, P: pd.DataFrame, stages: list, playoffs: dict, reach
         "matchups": {"teams": list(P.index), "p": P.round(3).values.tolist()},
         "zoo": load(PROC / "zoo.json"),
         "replay": load(PROC / "replay.json"),
+        "maps": load(PROC / "map_backtest.json"),
         "sentiment": sentiment,
         "stand_ins": teams.STAND_INS,
     }

@@ -101,3 +101,17 @@ def test_pick_status():
     assert pick_status("0-3", 0, 3) == "hit" and pick_status("0-3", 1, 0) == "miss"
     assert pick_status("3-1/3-2", 3, 0) == "miss" and pick_status("3-1/3-2", 3, 2) == "hit"
     assert pick_status("3-1/3-2", 2, 2) == "open" and pick_status("3-1/3-2", 1, 3) == "miss"
+
+
+def test_veto_formats():
+    from cs2p.maps import matchup_prob, series_prob, veto
+
+    adv = {"Mirage": 0.5, "Ancient": 0.3, "Dust II": 0.1, "Cache": 0.0, "Inferno": -0.1, "Nuke": -0.3, "Anubis": -0.5}
+    bo1 = veto(dict(adv), 1)
+    assert len(bo1) == 1 and bo1[0] in adv
+    bo3 = veto(dict(adv), 3)
+    assert len(bo3) == 3 and len(set(bo3)) == 3
+    assert bo3[0] == "Ancient"  # A bans Anubis, B bans Mirage (A's best), A picks its best remaining
+    assert np.isclose(series_prob([0.6, 0.6, 0.6], 3), 0.6**2 * (3 - 2 * 0.6))
+    neutral = {k: 0.0 for k in adv}
+    assert np.isclose(matchup_prob(0.6, neutral, 1), 0.6)  # no map edges: veto changes nothing
