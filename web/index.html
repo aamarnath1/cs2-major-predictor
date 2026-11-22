@@ -33,7 +33,7 @@
   --bar: #ece9df; --shadow: none; --team-dark: #bdb7ae; --team-light: #eee9e1; --team-shade: 0%; }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-section, details[id] { scroll-margin-top: 68px; }
+section, details[id], #round1 { scroll-margin-top: 68px; }
 body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
 .num { font-variant-numeric: tabular-nums; }
 .wrap { max-width: 980px; margin: 0 auto; padding: 0 18px; }
@@ -131,6 +131,7 @@ details.more > div { padding: 0 16px 16px; }
 .mu .split { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin: 6px 0 4px; background: var(--sunk); }
 .mu .split i { display: block; height: 100%; }
 .mu .split i + i, .duel-bar i + i { border-inline-start: 2px solid var(--paper); }
+.split .striped, .duel-bar .striped { background-image: repeating-linear-gradient(135deg, transparent 0 4px, rgb(20 16 12 / .42) 4px 6px, rgb(255 250 240 / .30) 6px 7px); }
 .mu .meta { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--mute); gap: 6px; }
 .tag { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; border-radius: 6px; padding: 1px 7px; }
 .tag.flip { background: var(--accent-soft); color: var(--accent); } .tag.fav { background: var(--sunk); color: var(--ink-2); }
@@ -221,7 +222,7 @@ footer a { color: var(--ink-2); }
 <body>
 <nav><div class="wrap">
   <div class="brand">SGP<b>/</b>Major Sim</div>
-  <div class="links"><a href="#picks">Pick'em</a><a href="#round1">Round 1</a><a href="#odds">Stage finishes</a><a href="#explore">Explore</a><a href="#trust">How it works</a></div>
+  <div class="links"><a href="#picks">Pick'em</a><a href="#stageGuide">Stage guide</a><a href="#odds">Stage finishes</a><a href="#explore">Explore</a><a href="#trust">How it works</a></div>
   <button class="iconbtn" id="theme" aria-label="Toggle light or dark theme">◐ Theme</button>
 </div></nav>
 
@@ -246,14 +247,19 @@ footer a { color: var(--ink-2); }
   <div id="sheet"></div>
 </section>
 
-<section id="round1">
-  <div class="eyebrow">Opening matches</div>
+<section id="stageGuide">
+  <div class="eyebrow">Stage guide</div>
+  <div id="guideTabs" class="tabs" role="group" aria-label="Stage guide"></div>
+  <p class="intro" id="guideNote"></p>
+  <div id="round1">
   <h2 id="r1Title">Round 1 at a glance</h2>
   <p class="intro" id="r1Intro"></p>
   <div class="card"><div class="r1" id="r1"></div></div>
+  </div>
 </section>
 
 <section id="odds">
+  <div class="eyebrow" id="finishStage"></div>
   <h2>How every team finishes</h2>
   <p class="intro" id="oddsIntro"></p>
   <div class="card">
@@ -305,6 +311,7 @@ footer a { color: var(--ink-2); }
     <div class="legend"><span><i style="background:var(--accent)"></i>Model picks</span><span><i style="background:var(--mute)"></i>Seed picks</span><span>Dashed line = 5 correct</span></div>
     <div class="plot" id="replay"></div>
   </div>
+  <details class="more" id="evidence"><summary>See the replay and match benchmark numbers</summary><div id="evidenceBody"></div></details>
 </section>
 
 <section id="method">
@@ -317,6 +324,10 @@ footer a { color: var(--ink-2); }
   </ul></div></details>
   <details class="more"><summary>Model comparison: 10 approaches tested on historical matches</summary><div id="zooBox"></div></details>
   <details class="more"><summary>Map pools: tested, didn't help</summary><div id="mapBox"></div></details>
+  <details class="more"><summary>Single-map forecasting experiment</summary><div>
+    <p class="details-copy">We saved three forecasts for each Singapore Stage 1 opener before kickoff. We’ll compare their probability scores once all eight matches finish.</p>
+    <a href="https://github.com/aamarnath1/cs2-major-predictor/blob/78d5642/outputs/bo1_singapore_stage1.json">See the frozen Round 1 forecasts</a>
+  </div></details>
   <details class="more"><summary>What fans are talking about</summary><div class="scroll" id="crowdBox"></div></details>
 </section>
 </div>
@@ -330,7 +341,7 @@ const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const DATES = { 1: "Nov 24–27", 2: "Nov 28–Dec 1", 3: "Dec 2–6", 4: "Dec 10–13" };
 const SLOT_DEF = [["3-0", 0, "s30", "Go 3-0", "Unbeaten · 2 picks", "p_3_0"], ["3-1/3-2", 1, "sadv", "Advance", "3-1 or 3-2 · 6 picks", "p_advance_31_32"], ["0-3", 2, "s03", "Go 0-3", "Winless · 2 picks", "p_0_3"]];
-let D, cur = 1, pathTeam = null, survSel = new Set(), mine = {};
+let D, cur = 1, guide = 1, pathTeam = null, survSel = new Set(), mine = {};
 
 (() => {
   let saved = null; try { saved = localStorage.getItem("theme"); } catch {}
@@ -350,6 +361,17 @@ const teamColor = team => {
   const color = TEAM_BRANDING[team]?.color || "var(--team-dark)";
   return color.startsWith("#") ? `color-mix(in srgb, ${color}, #262321 var(--team-shade))` : color;
 };
+function similarColors(a, b) {
+  const x = TEAM_BRANDING[a]?.color, y = TEAM_BRANDING[b]?.color;
+  if (x === y) return true;
+  if (!x?.startsWith("#") || !y?.startsWith("#")) return false;
+  return [1, 3, 5].reduce((distance, i) =>
+    distance + (parseInt(x.slice(i, i + 2), 16) - parseInt(y.slice(i, i + 2), 16)) ** 2, 0) < 75 ** 2;
+}
+const splitLabels = p => {
+  const left = Math.round(100 * p);
+  return [`${left}%`, `${100 - left}%`];
+};
 function teamLabel(team) {
   const brand = TEAM_BRANDING[team];
   if (!brand) return esc(team);
@@ -359,9 +381,11 @@ function teamLabel(team) {
 function init() {
   const active = D.stages.find(s => s.status !== "complete");
   cur = active ? active.stage : 4;
-  $("#updated").innerHTML = `Updated ${esc(D.generated)} · results through ${esc(D.data_through)}${isLive() ? `<span class="livebadge"><i></i>Live</span>` : ""}`;
+  const confirmed = D.stages.filter(s => s.seeds_known && s.round1?.length);
+  guide = (confirmed.find(s => s.stage === cur) || confirmed.at(-1))?.stage ?? 1;
+  $("#updated").innerHTML = `Updated ${esc(D.generated)} · match history through ${esc(D.data_through)}${isLive() ? `<span class="livebadge"><i></i>Live</span>` : ""}`;
   survSel = new Set(D.major.slice(0, 3).map(r => r.team));
-  renderRace(); renderTabs(); renderStage(); initH2H(); renderTrust(); renderMethod();
+  renderRace(); renderTabs(); renderStage(); renderGuide(); initH2H(); renderTrust(); renderMethod();
   $("#trophy").addEventListener("toggle", renderTrophy);
   $("#foot").innerHTML = `Data from Valve and Liquipedia (CC-BY-SA). Team marks via <a href="https://www.pglesports.com/cs2/pgl-major-singapore-2026/">PGL’s Singapore Major</a>. Unofficial fan project. <a href="https://github.com/aamarnath1/cs2-major-predictor">Source on GitHub</a> · generated ${esc(D.generated)}.`;
 }
@@ -374,8 +398,8 @@ function redraw() {
 
 /* ---------------- hero ---------------- */
 function renderRace() {
-  const top = D.major.slice(0, 5), max = top[0].champion || 1;
-  $("#race").innerHTML = top.map(r => `<div class="row"><div class="name" title="${esc(r.team)}">${teamLabel(r.team)}</div><div class="track" aria-hidden="true"><div class="fill" style="width:${(100 * r.champion / max).toFixed(1)}%;background:${teamColor(r.team)}"></div></div><div class="pct num">${pct(r.champion)}</div></div>`).join("");
+  const top = D.major.slice(0, 5);
+  $("#race").innerHTML = top.map(r => `<div class="row"><div class="name" title="${esc(r.team)}">${teamLabel(r.team)}</div><div class="track" aria-hidden="true"><div class="fill" style="width:${100 * r.champion}%;background:${teamColor(r.team)}"></div></div><div class="pct num">${pct(r.champion)}</div></div>`).join("");
 }
 
 /* ---------------- tabs + cheat sheet ---------------- */
@@ -389,8 +413,8 @@ function renderTabs() {
   const t = D.stages.map(s => `<button class="tab ${s.stage === cur ? "on" : ""}" data-s="${s.stage}" aria-pressed="${s.stage === cur}">Stage ${s.stage}<span class="st">${stLabel(s)}</span></button>`);
   t.push(`<button class="tab ${cur === 4 ? "on" : ""}" data-s="4" aria-pressed="${cur === 4}">Playoffs<span class="st">${D.playoffs.seeds_known || D.playoffs.pick_locked ? stLabel(D.playoffs) : "later"}</span></button>`);
   $("#tabs").innerHTML = t.join("");
-  document.querySelectorAll(".tab").forEach(b => b.onclick = () => {
-    cur = +b.dataset.s; pathTeam = null; renderTabs(); renderStage();
+  document.querySelectorAll("#tabs .tab").forEach(b => b.onclick = () => {
+    cur = +b.dataset.s; renderTabs(); renderStage();
     $(`#tabs [data-s="${cur}"]`).focus({ preventScroll: true });
   });
 }
@@ -398,13 +422,13 @@ function renderTabs() {
 function reason(slot, t, s, rankQ, r1) {
   const opp = r1 ? (r1.a === t.team ? [r1.b, r1.p_a] : [r1.a, 1 - r1.p_a]) : null;
   const open = opp && s.status === "upcoming" ? ` Opens vs ${esc(opp[0])} (${pct(opp[1])} to win).` : "";
-  if (slot === "3-0") return `${rankQ <= 3 ? `One of the strongest teams in the stage (#${rankQ}).` : `Rated #${rankQ} in the stage.`}${open}`;
-  if (slot === "0-3") return `${rankQ >= s.teams.length - 2 ? "One of the lowest-rated teams here." : `Rated #${rankQ} of ${s.teams.length}.`}${open}`;
+  if (slot === "3-0" || slot === "0-3") {
+    return `#${rankQ} of ${s.teams.length} by chance to advance.${open}`;
+  }
   return `${pct(t.p_qualify)} to qualify.${open}`;
 }
 
 function renderStage() {
-  ["#round1", "#paths", "#odds"].forEach(id => $(id).style.display = "");
   if (cur === 4) return renderPlayoffs();
   const s = stage(cur), byT = Object.fromEntries(s.teams.map(t => [t.team, t]));
   const rankQ = Object.fromEntries([...s.teams].sort((a, b) => b.p_qualify - a.p_qualify).map((t, i) => [t.team, i + 1]));
@@ -412,11 +436,10 @@ function renderStage() {
   const hits = Object.values(s.pick_status || {}).flatMap(o => Object.values(o)).filter(v => v === "hit").length;
   $("#picksIntro").innerHTML = s.seeds_known
     ? `<b>Stage ${s.stage}, ${DATES[s.stage]}.</b> Get five of these ten picks right to clear the challenge.`
-    : `<b>Stage ${s.stage}, ${DATES[s.stage]}.</b> Half this field comes out of the previous stage, so these are early picks. They update automatically once the teams are confirmed.`;
+    : `<b>Stage ${s.stage}, ${DATES[s.stage]}.</b> These are projected picks. Each percentage includes the chance of reaching the stage and finishing in that slot.`;
   if (!s.picks) {
     $("#stageNote").innerHTML = '<div class="note">No valid pre-cutoff card is available to score.</div>';
     $("#sheet").innerHTML = "";
-    renderRound1(s); renderPaths(s); renderOdds(s);
     return;
   }
   const notes = { preview: "Early look. Pick'em for this stage opens when the previous stage ends.", live: "Stage under way. Picks are locked: ✓ correct, ✗ wrong, • still open.", done: "Stage finished. Here's how the locked picks did.", ready: "Field confirmed. This card freezes at the scheduled first match.", "awaiting results": "The card is frozen. Waiting for results from the feed." };
@@ -435,16 +458,17 @@ function renderStage() {
     <div class="card verdict"><strong class="big num">${s.status === "upcoming" ? pct(p5) : `${hits}/10`}</strong>
       <span class="ink2">${s.status === "upcoming" ? "simulated chance of getting five or more right" : `correct so far · ${pct(p5)} chance of finishing with five or more`}</span></div>
     <details class="more" id="builder"><summary>Build your own picks and compare</summary><div>
-      <p class="small ink2">Tap a team to cycle it through <b>3-0 → Advance → 0-3 → none</b>. Your set is scored against ${s.outcomes.length.toLocaleString()} simulated stages.</p>
+      <p class="small ink2">Tap a team to cycle it through <b>3-0 → Advance → 0-3 → none</b>. Both cards are compared on the same sample of ${s.outcomes.length.toLocaleString()} simulations. The headline odds use the full run.</p>
       <div class="chips" id="chips"></div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px"><button class="btn" id="reset">Use our picks</button><button class="btn" id="clear">Clear</button><span class="ink2" id="myScore"></span></div>
     </div></details>
-    <details class="more" id="pickDist"><summary>See the spread of possible scores</summary><div class="plot" id="dist"></div></details>`;
+    <details class="more" id="pickDist"><summary>See the spread of possible scores</summary><div>
+      <p class="details-copy">This card averages <strong>${s.expected_correct.toFixed(1)} correct picks</strong> across the simulations.</p>
+      <div class="plot" id="dist"></div></div></details>`;
   $("#pickDist").ontoggle = () => { if ($("#pickDist")?.open) distBars($("#dist"), s.score_dist); };
   mine = {}; setOurs(s, mine); renderBuilder(s);
   $("#reset").onclick = () => { mine = {}; setOurs(s, mine); renderBuilder(s); };
   $("#clear").onclick = () => { mine = {}; renderBuilder(s); };
-  renderRound1(s); renderPaths(s); renderOdds(s);
 }
 function setOurs(s, into) { for (const [slot, code] of SLOT_DEF.map(x => [x[0], x[1]])) for (const t of s.picks[slot] || []) into[t] = code; }
 function distBars(el, dist) {
@@ -479,7 +503,6 @@ function renderBuilder(s) {
 /* ---------------- playoffs ---------------- */
 function renderPlayoffs() {
   const P = D.playoffs;
-  ["#round1", "#paths", "#odds"].forEach(id => $(id).style.display = "none");
   $("#picksIntro").innerHTML = `<b>Playoffs, ${DATES[4]} at the Singapore Indoor Stadium.</b> 8 teams, single elimination, best-of-three, with a best-of-five Grand Final. The Pick'em card asks for 7 picks: 4 quarterfinals, 2 semis and the champion.`;
   if (!P.seeds_known) {
     $("#stageNote").innerHTML = `<div class="note">${P.pick_locked ? "The forecast cutoff has passed. No playoff card was saved." : "The bracket is seeded from Stage 3 results. For now, here's how deep each team is likely to go."}</div>`;
@@ -502,21 +525,40 @@ function renderPlayoffs() {
 }
 
 /* ---------------- round 1 ---------------- */
+function renderGuide() {
+  const confirmed = D.stages.filter(s => s.seeds_known && s.round1?.length);
+  const s = confirmed.find(s => s.stage === guide);
+  $("#guideTabs").innerHTML = confirmed.map(s => `<button class="tab ${s.stage === guide ? "on" : ""}" data-guide="${s.stage}" aria-pressed="${s.stage === guide}">Stage ${s.stage}</button>`).join("");
+  $("#guideNote").textContent = s
+    ? (confirmed.length < 3 ? "Later stages appear here once their opening matchups are confirmed." : "")
+    : "The guide opens when the first matchups are confirmed.";
+  $("#guideNote").hidden = !$("#guideNote").textContent;
+  $("#round1").hidden = !s;
+  ["#paths", "#odds"].forEach(id => $(id).hidden = !s?.visits);
+  if (!s) return;
+  $("#guideTabs").querySelectorAll("button").forEach(b => b.onclick = () => {
+    guide = +b.dataset.guide; pathTeam = null;
+    renderGuide();
+    $(`#guideTabs [data-guide="${guide}"]`).focus({ preventScroll: true });
+  });
+  renderRound1(s); renderPaths(s); renderOdds(s);
+}
+
 function renderRound1(s) {
-  $("#round1").style.display = s.seeds_known ? "" : "none";
-  ["#paths", "#odds"].forEach(id => $(id).style.display = s.seeds_known && s.visits ? "" : "none");
-  if (!s.seeds_known) return;
   const fmt = s.stage === 3 ? "best-of-three" : "single map";
   $("#r1Title").textContent = `Stage ${s.stage} · Round 1 at a glance`;
-  $("#r1Intro").innerHTML = `Each bar shows the model’s win chances in a ${fmt}. <b>Coin flip</b> means both teams have about a 50% chance.`;
+  $("#r1Intro").innerHTML = `Each bar shows the model’s win chances in a ${fmt}. <b>Coin flip</b> means both teams have about a 50% chance. Finished matches show the winner.`;
   const key = (a, b) => [a, b].sort().join("|");
   const res = Object.fromEntries((s.matches || []).filter(m => m.round === 1).map(m => [key(m.a, m.b), m.winner]));
   $("#r1").innerHTML = s.round1.map(m => {
     const fav = m.p_a >= .5 ? m.a : m.b, pf = Math.max(m.p_a, 1 - m.p_a), w = res[key(m.a, m.b)];
+    const labels = splitLabels(m.p_a);
     const tag = pf < .55 ? `<span class="tag flip">Coin flip</span>` : `<span class="tag fav">${pf < .6 ? "Slight edge" : "Favoured"}: ${esc(fav)}</span>`;
+    const result = w ? `<div class="meta"><span class="res">✓ ${esc(w)} won</span></div>`
+      : `<div class="split" aria-hidden="true"><i style="width:${100 * m.p_a}%;background-color:${teamColor(m.a)}"></i><i class="${similarColors(m.a, m.b) ? "striped" : ""}" style="width:${100 * (1 - m.p_a)}%;background-color:${teamColor(m.b)}"></i></div>
+      <div class="meta"><span class="num">${labels[0]}</span>${tag}<span class="num">${labels[1]}</span></div>`;
     return `<div class="mu"><div class="names"><span>${teamLabel(m.a)}</span><span>${teamLabel(m.b)}</span></div>
-      <div class="split" aria-hidden="true"><i style="width:${100 * m.p_a}%;background:${teamColor(m.a)}"></i><i style="width:${100 * (1 - m.p_a)}%;background:${teamColor(m.b)}"></i></div>
-      <div class="meta"><span class="num">${pct(m.p_a)}</span>${w ? `<span class="res">✓ ${esc(w)} won</span>` : tag}<span class="num">${pct(1 - m.p_a)}</span></div></div>`;
+      ${result}</div>`;
   }).join("");
 }
 
@@ -525,6 +567,7 @@ const COLS = [[[0, 0]], [[1, 0], [0, 1]], [[2, 0], [1, 1], [0, 2]], [[3, 0], [2,
 const COLHEAD = ["Start", "Round 1", "Round 2", "Round 3", "Round 4", "Round 5"];
 function renderPaths(s) {
   if (!s.seeds_known || !s.visits) return;
+  $("#paths > summary").textContent = `Follow a team through Stage ${s.stage} Swiss`;
   const cols = s.outcome_cols, V = s.visits, idx = Object.fromEntries(cols.map((t, i) => [t, i]));
   $("#pathTeams").innerHTML = `<button class="chip ${pathTeam ? "" : "on"}" data-t="" aria-pressed="${!pathTeam}">Most likely teams</button>` + cols.map(t => `<button class="chip ${pathTeam === t ? "on" : ""}" data-t="${esc(t)}" aria-pressed="${pathTeam === t}">${teamLabel(t)}</button>`).join("");
   document.querySelectorAll("#pathTeams .chip").forEach((c, i) => c.onclick = () => {
@@ -555,9 +598,13 @@ function renderOdds(s) {
   const key = ([w, l, c]) => `<span class="finish-key" style="background:${c}">${w}–${l}</span>`;
   $("#finishLegend").innerHTML = `<div><strong>Advance</strong>${recs.slice(0, 3).map(key).join("")}</div>
     <div><strong>Eliminated</strong>${recs.slice(3).map(key).join("")}</div>`;
-  $("#oddsIntro").textContent = "Win three matches to advance. Lose three and you’re out. Open a team’s row to see its odds for every finish.";
   const rows = s.teams.map(team => ({ ...team, finishes: V[cols.indexOf(team.team)] }))
     .sort((a, b) => b.p_qualify - a.p_qualify);
+  $("#finishStage").textContent = `Stage ${s.stage}`;
+  const nearHalf = rows.filter(r => r.p_qualify >= .4 && r.p_qualify <= .6).length;
+  $("#oddsIntro").textContent = nearHalf
+    ? `${nearHalf} of ${rows.length} teams have a 40–60% chance to advance. Open a row for all six finishes.`
+    : "Win three matches to advance. Lose three and you’re out. Open a row for all six finishes.";
   $("#oddsRows").innerHTML = rows.map(r => {
     const live = s.status !== "upcoming" && r.record ? ` <span class="muted small">(${r.record.join("–")})</span>` : "";
     const bar = recs.map(([w, l, color]) => {
@@ -579,7 +626,11 @@ function renderOdds(s) {
 function renderTrophy() {
   if (!$("#trophy").open) return;
   const steps = [["start", "Start"], ["stage2", "Stage 2"], ["stage3", "Stage 3"], ["playoffs", "Playoffs"], ["semis", "Semis"], ["final", "Final"], ["champion", "Win"]];
-  const val = (r, k) => k === "start" ? 1 : k === "stage2" ? (r.entry === "Stage 1" ? r.stage2 : 1) : k === "stage3" ? (r.entry === "Stage 3" ? 1 : r.stage3) : r[k];
+  const val = (r, k) => {
+    if (k === "start") return r.entry === "Stage 1" ? 1 : null;
+    if (k === "stage2") return r.entry === "Stage 3" ? null : r.stage2;
+    return r[k];
+  };
   const pool = D.major.slice(0, 16);
   const controls = $("#survTeams");
   if (!controls.children.length) {
@@ -607,8 +658,9 @@ function renderTrophy() {
   }).join("");
   const lines = sel.map(r => {
     const c = teamColor(r.team);
-    const pts = steps.map(([k], i) => [X(i), Y(val(r, k))]);
-    return `<polyline fill="none" stroke="${c}" stroke-width="2.5" points="${pts.map(p => p.join(",")).join(" ")}"/>${pts.map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="3.5" fill="${c}"><title>${esc(r.team)} · ${steps[i][1]}: ${pct(val(r, steps[i][0]))}</title></circle>`).join("")}`;
+    const pts = steps.map(([k, label], i) => ({ x: X(i), value: val(r, k), label }))
+      .filter(point => point.value !== null);
+    return `<polyline fill="none" stroke="${c}" stroke-width="2.5" points="${pts.map(p => `${p.x},${Y(p.value)}`).join(" ")}"/>${pts.map(p => `<circle cx="${p.x}" cy="${Y(p.value)}" r="3.5" fill="${c}"><title>${esc(r.team)} · ${p.label}: ${pct(p.value)}</title></circle>`).join("")}`;
   }).join("");
   const summary = sel.map(r => `<span>${teamLabel(r.team)} · ${pct(r.champion)} to win</span>`).join("");
   el.innerHTML = `<svg width="${W}" height="${H}" role="img" aria-label="Chance of reaching each stage">${grid}${labels}${lines}</svg><div class="legend">${summary}</div>`;
@@ -629,10 +681,11 @@ function updateH2H() {
   const el = $("#duels");
   if (a === b) { el.innerHTML = '<p class="details-copy">Choose two different teams.</p>'; return; }
   const p = D.matchups.p[a][b];
-  el.innerHTML = [["Single map", bo1(p)], ["Best-of-three", p]].map(([format, chance]) =>
-    `<div class="duel"><strong>${format}</strong><div><div class="duel-values"><span>${teamLabel(T[a])} ${pct(chance)}</span><span>${teamLabel(T[b])} ${pct(1 - chance)}</span></div>
-      <div class="duel-bar" aria-hidden="true"><i style="width:${100 * chance}%;background:${teamColor(T[a])}"></i><i style="width:${100 * (1 - chance)}%;background:${teamColor(T[b])}"></i></div></div></div>`
-  ).join("");
+  el.innerHTML = [["Single map", bo1(p)], ["Best-of-three", p]].map(([format, chance]) => {
+    const labels = splitLabels(chance);
+    return `<div class="duel"><strong>${format}</strong><div><div class="duel-values"><span>${teamLabel(T[a])} ${labels[0]}</span><span>${teamLabel(T[b])} ${labels[1]}</span></div>
+      <div class="duel-bar" aria-hidden="true"><i style="width:${100 * chance}%;background-color:${teamColor(T[a])}"></i><i class="${similarColors(T[a], T[b]) ? "striped" : ""}" style="width:${100 * (1 - chance)}%;background-color:${teamColor(T[b])}"></i></div></div></div>`;
+  }).join("");
 }
 
 /* ---------------- trust ---------------- */
@@ -654,8 +707,26 @@ function renderTrust() {
   }
 }
 
+function renderEvidence() {
+  const items = [];
+  if (D.replay) {
+    const r = D.replay, model = r.summary["Ensemble (optimised)"], seed = r.summary["Seed baseline"];
+    items.push(`<li><b>Average picks correct:</b> ${model.mean_correct.toFixed(2)} for the model and
+      ${seed.mean_correct.toFixed(2)} for seed picks across ${model.stages} stages.</li>`);
+  }
+  if (D.zoo) {
+    const model = D.zoo.results.find(r => r.model === "Ensemble 4 raters");
+    const seed = D.zoo.results.find(r => r.model === "VRS points");
+    if (model && seed) items.push(`<li><b>Match winner accuracy:</b> ${pct(model.acc, 1)} for the model
+      and ${pct(seed.acc, 1)} for a Valve ranking baseline on ${D.zoo.eval_n} matches between top-rated teams.</li>`);
+  }
+  $("#evidence").hidden = !items.length;
+  $("#evidenceBody").innerHTML = `<ul class="plain">${items.join("")}</ul>`;
+}
+
 /* ---------------- method ---------------- */
 function renderMethod() {
+  renderEvidence();
   const si = Object.keys(D.stand_ins).join(", ");
   $("#caveats").innerHTML = [
     `<b>Stand-ins aren't penalised</b> (${esc(si)}). Our tests couldn't detect a roster-change effect, so weigh those yourself.`,
