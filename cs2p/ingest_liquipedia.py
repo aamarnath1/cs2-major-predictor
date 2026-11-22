@@ -255,6 +255,12 @@ def opponent(v: str) -> tuple[str | None, str]:
     return (code or None), named.get("score", "")
 
 
+def bracket_slot(text: str, start: int) -> str:
+    """Bracket position (e.g. 'R1M2') of a {{Match}} starting at `start`, or '' outside brackets."""
+    m = re.search(r"\|\s*(R\d+M\d+)\s*=\s*$", text[max(0, start - 40):start])
+    return m.group(1) if m else ""
+
+
 def parse_matches(text: str) -> tuple[list[dict], int]:
     """Parse every finished ``{{Match}}`` on a page. Returns (matches, n_skipped_unclear)."""
     text = COMMENT.sub("", text)
@@ -306,6 +312,7 @@ def parse_matches(text: str) -> tuple[list[dict], int]:
             "team1": c1, "team2": c2, "winner": winner,
             "score1": w1, "score2": w2, "best_of": best_of, "maps": maps,
             "matchlist_id": ml[2] if ml else "", "section": ml[3] if ml else "",
+            "slot": bracket_slot(text, s),
         })
     return out, skipped
 

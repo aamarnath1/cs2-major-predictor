@@ -18,7 +18,7 @@ from cs2p.features import build_features, ts_win_prob, TS
 from cs2p.live import fetch_state, fixed_rounds, major_matches, simulate_major
 from cs2p.pickem import NEED, optimise, score
 from cs2p.playoffs import all_brackets
-from cs2p.swiss import ADV, ADV_30, ELIM_03, simulate
+from cs2p.swiss import ADV, ADV_30, ELIM_03, bo1_from_bo3, simulate
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "outputs"
@@ -98,11 +98,16 @@ def stage_block(s: int, st: dict, P: pd.DataFrame, per_rater: dict, major: dict,
     """Odds, picks and (once started) live pick scoring for one Swiss stage."""
     seeds_known = st["seeds"] is not None
     fr: list = []
+    visits, round1 = None, []
     if seeds_known:
         cols = st["seeds"]
         fr = fixed_rounds(cols, st["matches"])
-        outcomes = simulate(P.loc[cols, cols].values, n_sims=n_stage, seed=s, all_bo3=(s == 3), fixed_rounds=fr)
+        visits = np.zeros((16, 4, 4))
+        Ps = P.loc[cols, cols].values
+        outcomes = simulate(Ps, n_sims=n_stage, seed=s, all_bo3=(s == 3), fixed_rounds=fr, visits=visits)
         in_stage = np.ones(len(cols))
+        p1 = Ps if s == 3 else bo1_from_bo3(Ps)  # round 1 is Bo1 in Stages 1-2, Bo3 in Stage 3
+        round1 = [{"a": cols[i], "b": cols[i + 8], "p_a": float(p1[i, i + 8])} for i in range(8)]
     else:  # field not set yet: preview from full-Major sims (teams may or may not reach this stage)
         cm = major["codes"][s]
         keep = (cm >= 0).mean(0) > 0
@@ -150,23 +155,41 @@ def stage_block(s: int, st: dict, P: pd.DataFrame, per_rater: dict, major: dict,
         "teams": sorted(rows, key=lambda r: -r["p_qualify"]),
         "picks": pick_names, "p_at_least_5": float((sc >= NEED).mean()), "expected_correct": float(sc.mean()),
         "score_dist": dist.tolist(), "pick_status": status, "matches": st["matches"],
-        "outcome_cols": cols, "outcomes": outcomes[:4000].tolist(),
+        "round1": round1, "visits": visits.round(4).tolist() if visits is not None else None,
+        "outcome_cols": cols, "outcomes": outcomes[:3000].tolist(),
     }
 
 
-def playoff_block(major: dict) -> dict:
+def playoff_block(major: dict, po: dict) -> dict:
+    """Bracket picks (frozen once the playoffs start) and live ✓/✗ against real results."""
     names, seeds, winners = major["names"], major["playoff_seeds"], major["winners"]
     fixed = bool((seeds == seeds[0]).all())
-    out = {"seeds_known": fixed}
-    if fixed:  # Stage 3 finished: optimise the 7 chained bracket picks
-        sd = seeds[0]
-        best, best_exp, best_dist = None, -1.0, None
+    out = {"seeds_known": fixed, "status": po["status"], "slots": po["slots"]}
+    if not fixed:
+        return out
+    sd = seeds[0]
+    path = OUT / "picks_playoffs.json"
+    if po["status"] == "upcoming" or not path.exists():
+        best, best_exp = None, -1.0
         for b in all_brackets():
-            c = (winners == sd[np.array(b)]).sum(1)
-            if c.mean() > best_exp:
-                best, best_exp, best_dist = b, c.mean(), np.bincount(c, minlength=8) / len(c)
-        out.update(seeds=[names[i] for i in sd], picks=[names[sd[j]] for j in best],
-                   expected_correct=float(best_exp), score_dist=best_dist.tolist())
+            c = (winners == sd[np.array(b)]).mean(0).sum()
+            if c > best_exp:
+                best, best_exp = b, c
+        picks = [names[sd[j]] for j in best]
+        if po["status"] == "upcoming":
+            path.write_text(json.dumps({"picks": picks, "frozen_at": str(pd.Timestamp.now())}, indent=2))
+    else:
+        picks = json.loads(path.read_text())["picks"]
+    col = {t: i for i, t in enumerate(names)}
+    c = (winners == np.array([col[t] for t in picks])).sum(1)
+    order = ["R1M1", "R1M2", "R1M3", "R1M4", "R2M1", "R2M2", "R3M1"]
+    lost = {v["b"] if v["winner"] == v["a"] else v["a"] for v in po["slots"].values() if v["winner"]}
+    status = []
+    for slot, t in zip(order, picks):
+        w = po["slots"].get(slot, {}).get("winner")
+        status.append("hit" if w == t else "miss" if (w or t in lost) else "open")
+    out.update(seeds=[names[i] for i in sd], picks=picks, pick_status=status,
+               expected_correct=float(c.mean()), score_dist=(np.bincount(c, minlength=8) / len(c)).tolist())
     return out
 
 
@@ -201,7 +224,7 @@ def main(n_stage: int = 20_000, n_major: int = 5_000) -> None:
     major = simulate_major(P, state, n_major)
 
     stages = [stage_block(s, state[s], P, per_rater, major, n_stage) for s in (1, 2, 3)]
-    playoffs = playoff_block(major)
+    playoffs = playoff_block(major, state["playoffs"])
     reach = reach_table(major)
     reach.to_csv(OUT / "major_odds.csv", index_label="team")
     P.to_csv(OUT / "matchups.csv")

@@ -115,3 +115,36 @@ def test_veto_formats():
     assert np.isclose(series_prob([0.6, 0.6, 0.6], 3), 0.6**2 * (3 - 2 * 0.6))
     neutral = {k: 0.0 for k in adv}
     assert np.isclose(matchup_prob(0.6, neutral, 1), 0.6)  # no map edges: veto changes nothing
+
+
+def test_simulate_major_respects_real_playoff_results():
+    import pandas as pd
+
+    from cs2p import teams
+    from cs2p.live import ALL_TEAMS, simulate_major
+
+    names = [d for d, _ in ALL_TEAMS]
+    P = pd.DataFrame(0.5, index=names, columns=names)
+    s3 = [d for d, _ in teams.STAGE3_INVITES]
+    qf = [(s3[0], s3[7]), (s3[3], s3[4]), (s3[1], s3[6]), (s3[2], s3[5])]
+    slots = {f"R1M{i + 1}": {"a": a, "b": b, "winner": a, "date": "2026-12-10"} for i, (a, b) in enumerate(qf)}
+    slots["R2M1"] = {"a": s3[0], "b": s3[3], "winner": s3[3], "date": "2026-12-11"}
+    state = {s: {"seeds": [d for d, _ in teams.STAGE1] if s == 1 else None, "matches": [], "status": "upcoming"}
+             for s in (1, 2, 3)}
+    state["playoffs"] = {"slots": slots, "status": "live"}
+    out = simulate_major(P, state, n=200)
+    col = {t: i for i, t in enumerate(out["names"])}
+    w = out["winners"]
+    assert (w[:, 0] == col[s3[0]]).all() and (w[:, 4] == col[s3[3]]).all()  # real QF1 and SF1 winners kept
+    assert set(np.unique(w[:, 6])) <= {col[s3[3]], col[s3[1]], col[s3[2]]}  # champion from teams still alive
+
+
+def test_visit_probabilities_are_consistent():
+    r = np.linspace(1700, 1300, 16)
+    v = np.zeros((16, 4, 4))
+    out = simulate(win_prob(r[:, None], r[None, :]), n_sims=2000, visits=v)
+    assert np.allclose(v[:, 0, 0], 1)
+    assert np.allclose(v[:, 1, 0] + v[:, 0, 1], 1)  # every team plays round 1
+    assert np.allclose(v[:, 3, 0], (out == ADV_30).mean(0))
+    assert np.allclose(v[:, 0, 3], (out == ELIM_03).mean(0))
+    assert np.isclose(v[:, 3, :].sum(), 8) and np.isclose(v[:, :, 3].sum(), 8)  # 8 advance, 8 out per run

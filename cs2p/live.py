@@ -13,12 +13,16 @@ import pandas as pd
 
 from cs2p import teams
 from cs2p.elo import PROC
-from cs2p.ingest_liquipedia import fetch_pages, parse_stage
+from cs2p.ingest_liquipedia import (COMMENT, bracket_slot, fetch_pages, find_templates, opponent, parse_matches,
+                                    parse_stage, split_params, to_vrs)
 from cs2p.playoffs import QF_SEEDS
 from cs2p.swiss import ADV, ADV_30, bo5_from_bo3, run_stage
 
 ALL_TEAMS = teams.STAGE1 + teams.STAGE2_INVITES + teams.STAGE3_INVITES
 STAGE_PAGES = {1: "PGL/2026/Singapore/Stage 1", 2: "PGL/2026/Singapore/Stage 2", 3: "PGL/2026/Singapore/Stage 3"}
+PLAYOFF_PAGE = "PGL/2026/Singapore/Playoffs"
+# Liquipedia Bracket/8 slots in our order: QF1..QF4, SF1, SF2, Final (matches QF_SEEDS / playoffs.py).
+PLAYOFF_SLOTS = ["R1M1", "R1M2", "R1M3", "R1M4", "R2M1", "R2M2", "R3M1"]
 INVITES = {1: [], 2: teams.STAGE2_INVITES, 3: teams.STAGE3_INVITES}
 DISPLAY = {v.casefold(): d for d, v in ALL_TEAMS}
 
@@ -43,7 +47,7 @@ def vrs_order(display_names: list[str]) -> list[str]:
 
 def fetch_state(max_age_h: float = 0.25) -> dict[int, dict]:
     """Return {stage: {seeds, matches, status}} with team names as display names."""
-    fetch_pages(list(STAGE_PAGES.values()), max_age_h=max_age_h)  # refresh cache
+    pages = fetch_pages(list(STAGE_PAGES.values()) + [PLAYOFF_PAGE], max_age_h=max_age_h)  # refresh cache
     tmap, lp = _team_maps()
     state = {}
     for n, title in STAGE_PAGES.items():
@@ -62,7 +66,28 @@ def fetch_state(max_age_h: float = 0.25) -> dict[int, dict]:
                     "start_date": st["start_date"]}
     if state[1]["seeds"] is None:  # Stage 1 is published; fall back to our static list
         state[1]["seeds"] = [d for d, _ in teams.STAGE1]
+    state["playoffs"] = parse_playoffs(pages[PLAYOFF_PAGE]["content"] or "", tmap, lp)
     return state
+
+
+def parse_playoffs(text: str, tmap: dict, lp: dict) -> dict:
+    """Bracket slots -> {a, b, winner, date} (display names; winner None until played)."""
+    text = COMMENT.sub("", text)
+    finished = {m["slot"]: m for m in parse_matches(text)[0] if m["slot"]}
+    slots = {}
+    for start, _, inner in find_templates(text, "Match"):
+        slot = bracket_slot(text, start)
+        if slot not in PLAYOFF_SLOTS:
+            continue
+        _, p = split_params(inner)
+        codes = [opponent(p.get(k, ""))[0] for k in ("opponent1", "opponent2")]
+        names = [DISPLAY.get(to_vrs(c, None, tmap, lp)[0].casefold()) if c else None for c in codes]
+        f = finished.get(slot)
+        winner = names[f["winner"] - 1] if f and all(names) else None
+        slots[slot] = {"a": names[0], "b": names[1], "winner": winner, "date": f["date"] if f else None}
+    played = sum(1 for v in slots.values() if v["winner"])
+    status = "complete" if slots.get("R3M1", {}).get("winner") else "live" if played else "upcoming"
+    return {"slots": slots, "status": status}
 
 
 def _finished(seeds: list[str], matches: list[dict]) -> bool:
@@ -89,7 +114,10 @@ def major_matches(state: dict) -> pd.DataFrame:
     """Finished Major matches as rating-update rows (VRS names)."""
     vrs = dict(ALL_TEAMS)
     rows = [{"date": m["date"], "winner": vrs[m["winner"]], "loser": vrs[m["b"] if m["winner"] == m["a"] else m["a"]]}
-            for st in state.values() for m in st["matches"] if m["date"]]
+            for s, st in state.items() if s != "playoffs" for m in st["matches"] if m["date"]]
+    for m in state.get("playoffs", {}).get("slots", {}).values():
+        if m["winner"] and m["date"]:
+            rows.append({"date": m["date"], "winner": vrs[m["winner"]], "loser": vrs[m["b"] if m["winner"] == m["a"] else m["a"]]})
     return pd.DataFrame(rows, columns=["date", "winner", "loser"]).assign(date=lambda d: pd.to_datetime(d.date))
 
 
@@ -106,7 +134,10 @@ def simulate_major(P: pd.DataFrame, state: dict, n: int, seed: int = 1) -> dict:
     codes = {s: np.full((n, len(names)), -1, dtype=np.int8) for s in (1, 2, 3)}
     playoff_seeds = np.empty((n, 8), dtype=np.int16)
     winners = np.empty((n, 7), dtype=np.int16)
-    fixed = {s: fixed_rounds(st["seeds"], st["matches"]) if st["seeds"] else [] for s, st in state.items()}
+    fixed = {s: fixed_rounds(state[s]["seeds"], state[s]["matches"]) if state[s]["seeds"] else [] for s in (1, 2, 3)}
+    po = state.get("playoffs", {"slots": {}})["slots"]
+    real_qf = [(po[k]["a"], po[k]["b"]) for k in PLAYOFF_SLOTS[:4] if k in po and po[k]["a"] and po[k]["b"]]
+    known = {k: col[v["winner"]] for k, v in po.items() if v["winner"]}
     p5 = bo5_from_bo3(Pv)
     for i in range(n):
         qualifiers: list[str] = []
@@ -120,9 +151,19 @@ def simulate_major(P: pd.DataFrame, state: dict, n: int, seed: int = 1) -> dict:
             codes[s][i, ix] = c
             qualifiers = [field[t] for t in order if c[t] in (ADV_30, ADV)]
         ps = [col[t] for t in qualifiers]  # Stage 3 standings order = playoff seeds
+        if len(real_qf) == 4:  # bracket published: lay real pairings onto the QF_SEEDS slots
+            ps = [0] * 8
+            for (sa, sb), (a, b) in zip(QF_SEEDS, real_qf):
+                ps[sa], ps[sb] = col[a], col[b]
         playoff_seeds[i] = ps
-        qf = [ps[a] if rng.random() < Pv[ps[a], ps[b]] else ps[b] for a, b in QF_SEEDS]
-        sf = [qf[0] if rng.random() < Pv[qf[0], qf[1]] else qf[1], qf[2] if rng.random() < Pv[qf[2], qf[3]] else qf[3]]
-        fin = sf[0] if rng.random() < p5[sf[0], sf[1]] else sf[1]
+
+        def play(slot: str, a: int, b: int, p: np.ndarray) -> int:
+            if slot in known and known[slot] in (a, b):
+                return known[slot]
+            return a if rng.random() < p[a, b] else b
+
+        qf = [play(PLAYOFF_SLOTS[k], ps[a], ps[b], Pv) for k, (a, b) in enumerate(QF_SEEDS)]
+        sf = [play("R2M1", qf[0], qf[1], Pv), play("R2M2", qf[2], qf[3], Pv)]
+        fin = play("R3M1", sf[0], sf[1], p5)
         winners[i] = qf + sf + [fin]
     return {"names": names, "codes": codes, "playoff_seeds": playoff_seeds, "winners": winners}

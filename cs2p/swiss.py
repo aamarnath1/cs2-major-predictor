@@ -63,8 +63,13 @@ def run_stage(
     all_bo3: bool = False,
     fixed_rounds: FixedRounds | None = None,
     p_bo1: np.ndarray | None = None,
+    visits: np.ndarray | None = None,
 ) -> tuple[np.ndarray, list[int]]:
     """Play one Swiss stage.
+
+    Args:
+        visits: optional (n, 4, 4) counter, incremented at [team, wins, losses] for every
+            record a team holds during the stage (including 0-0).
 
     Returns:
         (outcome code per team, final standings order: record, then Buchholz, then seed).
@@ -77,6 +82,8 @@ def run_stage(
     opps: list[list[int]] = [[] for _ in range(n)]
     played: set = set()
     rnd = 0
+    if visits is not None:
+        visits[:, 0, 0] += 1
     pairs = _with_fixed([(i, i + n // 2, None) for i in range(n // 2)], fixed_rounds[0] if fixed_rounds else [])
     while True:
         for a, b, known in pairs:
@@ -90,6 +97,9 @@ def run_stage(
             opps[a].append(b)
             opps[b].append(a)
             played |= {(a, b), (b, a)}
+            if visits is not None:
+                visits[w, wins[w], losses[w]] += 1
+                visits[l, wins[l], losses[l]] += 1
         rnd += 1
         alive = [t for t in range(n) if wins[t] < 3 and losses[t] < 3]
         if not alive:
@@ -121,6 +131,7 @@ def simulate(
     seed: int = 0,
     all_bo3: bool = False,
     fixed_rounds: FixedRounds | None = None,
+    visits: np.ndarray | None = None,
 ) -> np.ndarray:
     """Simulate a Swiss stage many times.
 
@@ -130,6 +141,8 @@ def simulate(
         n_sims: number of simulated stages.
         all_bo3: every match is Bo3 (Stage 3).
         fixed_rounds: real pairings/results to replay before simulating the rest.
+        visits: optional (16, 4, 4) array; receives the probability that each team ever
+            holds each W-L record (useful for drawing the Swiss path diagram).
 
     Returns:
         (n_sims, 16) int array of outcome codes (ADV_30, ADV, ELIM_03, ELIM).
@@ -138,5 +151,7 @@ def simulate(
     p_bo1 = bo1_from_bo3(p_bo3)
     out = np.empty((n_sims, p_bo3.shape[0]), dtype=np.int8)
     for s in range(n_sims):
-        out[s], _ = run_stage(p_bo3, rng, all_bo3, fixed_rounds, p_bo1)
+        out[s], _ = run_stage(p_bo3, rng, all_bo3, fixed_rounds, p_bo1, visits)
+    if visits is not None:
+        visits /= n_sims
     return out
