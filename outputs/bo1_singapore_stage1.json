@@ -1,0 +1,84 @@
+{
+  "forecast": "PGL Singapore 2026 Stage 1 Round 1 Bo1 challengers",
+  "frozen_at": "2026-11-22T22:47:43+00:00",
+  "cutoff": "2026-11-24T04:00:00+00:00",
+  "base_card_commit": "8b10bc0be92a122ac3ff8d851214586962094a3d",
+  "calibration_slope": 1.0157873629987695,
+  "calibration_matches": 160,
+  "base_card_sha256": "3f8295475c86328f929d7afc32a881e14a2ac84080fea517ae9bbb154d5e4e7c",
+  "base_card_frozen_at": "2026-11-22T22:39:45.759701+00:00",
+  "matches": [
+    {
+      "a": "Ninjas in Pyjamas",
+      "b": "M80",
+      "p_a": {
+        "converted": 0.5040621180510243,
+        "raw": 0.5060930430206597,
+        "calibrated": 0.5061892263524581
+      }
+    },
+    {
+      "a": "PARIVISION",
+      "b": "DENDELE",
+      "p_a": {
+        "converted": 0.5347235233980427,
+        "raw": 0.5520015511896426,
+        "calibrated": 0.5528164452136878
+      }
+    },
+    {
+      "a": "HEROIC",
+      "b": "Imperial",
+      "p_a": {
+        "converted": 0.5370233571243261,
+        "raw": 0.5554335377097908,
+        "calibrated": 0.5563013281148614
+      }
+    },
+    {
+      "a": "FaZe",
+      "b": "Wildcard",
+      "p_a": {
+        "converted": 0.5592050341688264,
+        "raw": 0.5883924960110224,
+        "calibrated": 0.5897580363611834
+      }
+    },
+    {
+      "a": "Liquid",
+      "b": "GOSH",
+      "p_a": {
+        "converted": 0.6317930335430901,
+        "raw": 0.6931112175082489,
+        "calibrated": 0.6958402619899231
+      }
+    },
+    {
+      "a": "Eternal Fire",
+      "b": "FlyQuest",
+      "p_a": {
+        "converted": 0.46816063171490896,
+        "raw": 0.4523055015972244,
+        "calibrated": 0.4515572155195952
+      }
+    },
+    {
+      "a": "100 Thieves",
+      "b": "Chinggis Warriors",
+      "p_a": {
+        "converted": 0.670208620962967,
+        "raw": 0.745450712158592,
+        "calibrated": 0.7486561675917655
+      }
+    },
+    {
+      "a": "9z",
+      "b": "Lynn Vision",
+      "p_a": {
+        "converted": 0.5042915958388221,
+        "raw": 0.5064372356749036,
+        "calibrated": 0.5065388511536021
+      }
+    }
+  ]
+}
