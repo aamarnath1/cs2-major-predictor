@@ -246,7 +246,16 @@ def fetch_bluesky(f: Fetcher) -> list[dict]:
 
 
 def fetch_reddit(f: Fetcher) -> tuple[list[dict], str]:
-    """Reddit via the official OAuth API (app-only). Skipped without credentials."""
+    """Reddit via the official OAuth API (app-only). Skipped without credentials.
+
+    Credentials come from the environment or a gitignored `.env` file in the project root.
+    """
+    env_file = Path(__file__).resolve().parents[1] / ".env"
+    if env_file.exists():
+        for line in env_file.read_text(encoding="utf-8").splitlines():
+            k, sep, v = line.partition("=")
+            if sep and not line.lstrip().startswith("#"):
+                os.environ.setdefault(k.strip(), v.strip().strip('"'))
     cid, secret = os.environ.get("REDDIT_CLIENT_ID"), os.environ.get("REDDIT_CLIENT_SECRET")
     if not (cid and secret):
         return [], ("skipped: unauthenticated JSON returns 403 and robots.txt disallows "

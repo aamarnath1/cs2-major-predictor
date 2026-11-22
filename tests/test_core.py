@@ -49,3 +49,55 @@ def test_optimiser_returns_valid_disjoint_picks():
     assert 0 <= p5 <= 1 and np.isclose(exp, score(out, picks).mean())
     # Strongest teams should dominate the 3-0 slot, weakest the 0-3 slot.
     assert min(picks[ADV_30]) < 4 and max(picks[ELIM_03]) > 11
+
+
+def test_fixed_rounds_replay_real_results_exactly():
+    from cs2p.swiss import run_stage
+
+    p = np.full((16, 16), 0.5)
+    rng = np.random.default_rng(3)
+    # Seed 0..7 win round 1; then fix round 2 high group fully.
+    r1 = [(i, i + 8, i) for i in range(8)]
+    r2 = [(0, 7, 0), (1, 6, 1), (2, 5, 2), (3, 4, 3)]
+    for _ in range(50):
+        codes, order = run_stage(p, rng, fixed_rounds=[r1, r2])
+        assert all(codes[t] != ELIM_03 for t in range(8))  # every round-1 winner has a win
+        assert all(codes[t] != ADV_30 for t in range(8, 16))  # every round-1 loser has a loss
+        assert len(order) == 16
+
+
+def test_partial_round_fills_remaining_pairs():
+    from cs2p.swiss import run_stage
+
+    p = np.full((16, 16), 0.5)
+    rng = np.random.default_rng(4)
+    codes, _ = run_stage(p, rng, fixed_rounds=[[(0, 8, 8)]])  # only one R1 result known
+    assert codes[0] != ADV_30 and codes[8] != ELIM_03
+
+
+def test_bo5_more_decisive_than_bo3():
+    from cs2p.swiss import bo5_from_bo3
+
+    p = np.array([0.3, 0.5, 0.7])
+    b5 = bo5_from_bo3(p)
+    assert np.isclose(b5[1], 0.5) and b5[2] > p[2] and b5[0] < p[0]
+
+
+def test_bracket_enumeration_and_optimiser():
+    from cs2p.playoffs import all_brackets, optimise_bracket, simulate_bracket
+
+    br = all_brackets()
+    assert len(br) == 128 and len({tuple(b) for b in br}) == 128
+    r = np.linspace(1800, 1400, 8)
+    w = simulate_bracket(win_prob(r[:, None], r[None, :]), n_sims=3000)
+    best, dist = optimise_bracket(w)
+    assert best[-1] == 0 and np.isclose(dist.sum(), 1)  # strongest seed picked to win
+
+
+def test_pick_status():
+    from cs2p.run import pick_status
+
+    assert pick_status("3-0", 3, 0) == "hit" and pick_status("3-0", 1, 1) == "miss"
+    assert pick_status("0-3", 0, 3) == "hit" and pick_status("0-3", 1, 0) == "miss"
+    assert pick_status("3-1/3-2", 3, 0) == "miss" and pick_status("3-1/3-2", 3, 2) == "hit"
+    assert pick_status("3-1/3-2", 2, 2) == "open" and pick_status("3-1/3-2", 1, 3) == "miss"

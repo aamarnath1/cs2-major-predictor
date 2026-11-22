@@ -1,4 +1,4 @@
-"""Rolling monthly backtest: Bradley-Terry vs Elo vs VRS on the same top-tier matches."""
+"""Tune Bradley-Terry params on the tuning window (ends before the model-zoo test window)."""
 
 import glob
 import itertools
@@ -8,7 +8,7 @@ import re
 import numpy as np
 import pandas as pd
 
-from cs2p.backtest import EVAL_FROM, log_loss, vrs_baseline
+from cs2p.backtest import TUNE_FROM, TUNE_TO, log_loss, vrs_baseline
 from cs2p.bt import fit_bt
 from cs2p.elo import PROC, EloParams, load_matches, run
 
@@ -28,7 +28,7 @@ def regions() -> dict[str, str]:
 def bt_probs(m: pd.DataFrame, mask: np.ndarray, hl: float, prior: float) -> np.ndarray:
     """Refit on the first of each month, predict that month's masked matches."""
     out = np.full(len(m), np.nan)
-    months = pd.date_range(EVAL_FROM, m.date.max() + pd.offsets.MonthBegin(1), freq="MS")
+    months = pd.date_range(TUNE_FROM, TUNE_TO, freq="MS")
     for start, end in zip(months[:-1], months[1:]):
         idx = np.where(mask & (m.date >= start).values & (m.date < end).values)[0]
         if len(idx) == 0:
@@ -44,7 +44,7 @@ def main() -> None:
     m = load_matches()
     wp, lp = vrs_baseline(m)
     top = (wp >= 1400) & (lp >= 1400)
-    mask = top & (m.date >= EVAL_FROM).values
+    mask = top & (m.date >= TUNE_FROM).values & (m.date < TUNE_TO).values
     reg = regions()
     rw, rl = m.winner.str.casefold().map(reg).values, m.loser.str.casefold().map(reg).values
     cross = mask & pd.notna(rw) & pd.notna(rl) & (rw != rl)

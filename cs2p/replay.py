@@ -2,6 +2,8 @@
 
 For every stage in data/processed/past_major_stages.json, ratings are rebuilt from matches
 strictly before the stage start, picks are optimised, then scored against the real records.
+Caveat: Elo/BT hyperparameters were tuned on Jul 2025-Feb 2026 data, which postdates some
+replayed stages. That can only flatter the model; the seed baseline uses no tuning at all.
 """
 
 import json
@@ -13,6 +15,9 @@ from cs2p.elo import PROC, load_matches
 from cs2p.pickem import NEED, optimise
 from cs2p.run import RATERS, matchup_matrix
 from cs2p.swiss import ADV, ADV_30, ELIM, ELIM_03, simulate
+
+
+MIN_HISTORY_MONTHS = 6  # ratings need history; the data starts Feb 2024
 
 
 def actual_codes(teams: list[dict]) -> np.ndarray:
@@ -43,6 +48,9 @@ def main(n_sims: int = 10_000) -> None:
             print(f"skip {st['event']} {st['stage']}: {len(teams)} teams")
             continue
         start = pd.Timestamp(st["start_date"])
+        if start < m.date.min() + pd.DateOffset(months=MIN_HISTORY_MONTHS):
+            print(f"skip {st['event']} {st['stage']}: under {MIN_HISTORY_MONTHS} months of prior data")
+            continue
         roster = [(t["name"], t["name"]) for t in teams]
         P, per = matchup_matrix(m, roster, start, {})
         actual = actual_codes(teams)
@@ -64,7 +72,14 @@ def main(n_sims: int = 10_000) -> None:
     summary = {c: {"mean_correct": float(df[c].mean()), "coins": int((df[c] >= NEED).sum()), "stages": len(df)}
                for c in strat_cols}
     print(pd.DataFrame(summary).T.round(2).to_string())
-    (PROC / "replay.json").write_text(json.dumps({"stages": rows, "summary": summary}, indent=2, default=str))
+    # Paired comparison: ensemble minus seed baseline, per stage, with a bootstrap 95% CI.
+    d = (df["Ensemble (optimised)"] - df["Seed baseline"]).to_numpy(dtype=float)
+    boot = np.random.default_rng(0).choice(d, (10_000, len(d))).mean(1)
+    paired = {"mean_diff": float(d.mean()), "ci": [float(np.percentile(boot, 2.5)), float(np.percentile(boot, 97.5))],
+              "wins": int((d > 0).sum()), "ties": int((d == 0).sum()), "losses": int((d < 0).sum())}
+    print("ensemble vs seeds:", paired)
+    (PROC / "replay.json").write_text(json.dumps({"stages": rows, "summary": summary, "vs_seed": paired},
+                                                 indent=2, default=str))
 
 
 if __name__ == "__main__":

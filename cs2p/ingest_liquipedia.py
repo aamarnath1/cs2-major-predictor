@@ -406,6 +406,8 @@ MANUAL = {
     "ic academy": "Inner Circle Academy", "mnxt": "MOUZ NXT", "bestia.a": "BESTIA Academy",
     "ex-keyd": "ex-Keyd Stars", "bounty.br": "Bounty Hunters",
     "theone 1337": "the ONE",  # Mongolian team, not 1win
+    "navi jr": "NAVI Junior", "kono.ecf": "kONO", "inox": "INOX Division", "vpp": "VP.Prodigy",
+    "biga": "BIG Academy", "ic esports": "Inner Circle",
 }
 # VRS renamed some teams mid-history; Liquipedia keeps one code. (vrs_new, vrs_old, last day old)
 DATED_ALIASES = [("BETBOOM", "BetBoom", "2026-03-24")]
@@ -448,6 +450,8 @@ def build_team_map(codes: set[str], vrs: dict[str, str]) -> pd.DataFrame:
             rows[c] = (vrs[norm(c)], c, "code")
         elif re.search(r"\.[a-z]{2}$", c) and norm(c[:-3]) in vrs:  # country tag, e.g. unity.sk
             rows[c] = (vrs[norm(c[:-3])], c, "code")
+        elif c.endswith(".a") and norm(c[:-2] + " academy") in vrs:  # e.g. pain.a
+            rows[c] = (vrs[norm(c[:-2] + " academy")], c, "code")
         else:
             todo.append(c)
     tmpl = fetch_pages([f"Template:TeamShort/{c}" for c in todo])
@@ -602,7 +606,7 @@ def parse_stage(event: str, title: str, tmap: dict, lp: dict) -> dict:
             r = int(mm.group(1)) if mm else None
         n1 = to_vrs(m["team1"], m["date"], tmap, lp)[0]
         n2 = to_vrs(m["team2"], m["date"], tmap, lp)[0]
-        out_matches.append({"round": r, "team1": n1, "team2": n2,
+        out_matches.append({"round": r, "date": m["date"], "team1": n1, "team2": n2,
                             "winner": n1 if m["winner"] == 1 else n2, "best_of": m["best_of"]})
     day = ib.get("sdate")
     teams = []
