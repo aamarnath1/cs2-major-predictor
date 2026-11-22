@@ -73,7 +73,7 @@ on macOS or Linux. Then run these commands in order. The first Liquipedia backfi
 and can take a while. It caches pages locally. A rebuild uses the latest available source data.
 
 ```bash
-python -m pip install numpy pandas scikit-learn trueskill requests pytest
+python -m pip install numpy pandas scipy scikit-learn trueskill requests pytest
 git clone --depth 1 https://github.com/ValveSoftware/counter-strike_regional_standings data/raw/vrs
 python -m cs2p.ingest_vrs
 python -m cs2p.ingest_liquipedia
@@ -86,3 +86,9 @@ python -m pytest -q
 The forecast updates `web/data.json` and writes tables and available pre-cutoff cards to
 `outputs/`. Rerun `python -m cs2p.run` after a round to pick up Singapore results. To regenerate
 the research sections, run `python -m cs2p.zoo` and `python -m cs2p.replay` before the forecast.
+
+The main entry points are [the forecast pipeline](cs2p/run.py), [the Swiss simulator](cs2p/swiss.py),
+and [the Bo1 experiment](cs2p/bo1_experiment.py). Run `python -m cs2p.bo1_experiment` after the data
+and parameters are built to compare the current Bo1 conversion with raw and calibrated odds.
+Use `--card PATH` to reproduce challenger forecasts from an archived Swiss card. The [frozen
+Singapore Round 1 forecasts](outputs/bo1_singapore_stage1.json) are ready to score after play.
