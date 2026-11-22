@@ -7,6 +7,7 @@ qualifiers 9-16 by Swiss record then Buchholz.
 """
 
 import functools
+from collections import Counter
 
 import numpy as np
 import pandas as pd
@@ -42,19 +43,37 @@ def fetch_state(max_age_h: float = 0.25) -> dict[int, dict]:
     for n, title in STAGE_PAGES.items():
         st = parse_stage(f"Singapore Stage {n}", title, tmap, lp)
         seeds = [DISPLAY.get(t["name"].casefold()) for t in st["teams"]]
-        known = len(seeds) == 16 and all(seeds)
+        confirmed = seeds if len(seeds) == 16 and all(seeds) else None
+        if n == 1 and confirmed is None:  # Stage 1 has a published static field.
+            confirmed = [d for d, _ in teams.STAGE1]
         matches = [
             {"round": m["round"], "date": m["date"], "a": DISPLAY.get(m["team1"].casefold()),
              "b": DISPLAY.get(m["team2"].casefold()), "winner": DISPLAY.get(m["winner"].casefold())}
             for m in st["matches"]
         ]
-        matches = [m for m in matches if m["a"] and m["b"] and m["winner"] and m["round"]]
-        done = known and _finished(seeds, matches)
+        try:
+            if confirmed is not None:
+                fixed_rounds(confirmed, matches)
+                if n == 1:
+                    if set(confirmed) != {d for d, _ in teams.STAGE1}:
+                        raise ValueError("The field disagrees with the published Stage 1 roster.")
+                else:
+                    previous = state[n - 1]
+                    if previous["status"] != "complete":
+                        raise ValueError("The previous Swiss stage is incomplete.")
+                    wins = Counter(m["winner"] for m in previous["matches"])
+                    qualifiers = {team for team, count in wins.items() if count == 3}
+                    invites = {team for team, _ in INVITES[n]}
+                    if set(confirmed) != invites | qualifiers:
+                        raise ValueError("The field disagrees with invites and previous qualifiers.")
+            elif matches:
+                raise ValueError("Results are present without a confirmed field.")
+        except ValueError as exc:
+            raise ValueError(f"Invalid Singapore Stage {n} results: {exc}") from exc
+        done = confirmed is not None and _finished(confirmed, matches)
         status = "complete" if done else "live" if matches else "upcoming"
-        state[n] = {"seeds": seeds if known else None, "matches": matches, "status": status,
+        state[n] = {"seeds": confirmed, "matches": matches, "status": status,
                     "start_date": st["start_date"]}
-    if state[1]["seeds"] is None:  # Stage 1 is published; fall back to our static list
-        state[1]["seeds"] = [d for d, _ in teams.STAGE1]
     state["playoffs"] = parse_playoffs(pages[PLAYOFF_PAGE]["content"] or "", tmap, lp)
     return state
 
@@ -89,13 +108,38 @@ def _finished(seeds: list[str], matches: list[dict]) -> bool:
 
 
 def fixed_rounds(seeds: list[str], matches: list[dict]) -> list[list[tuple[int, int, int]]]:
+    """Validate a Swiss result prefix and translate teams to simulation indices."""
     idx = {t: i for i, t in enumerate(seeds)}
-    rounds: list[list] = [[] for _ in range(5)]
+    if len(seeds) != 16 or len(idx) != 16:
+        raise ValueError("The Swiss field must contain 16 distinct teams.")
+
+    rounds: list[list[tuple[int, int, int]]] = [[] for _ in range(5)]
     for m in matches:
-        if m["a"] in idx and m["b"] in idx and 1 <= m["round"] <= 5:
-            rounds[m["round"] - 1].append((idx[m["a"]], idx[m["b"]], idx[m["winner"]]))
+        rnd, a, b, winner = m["round"], m["a"], m["b"], m["winner"]
+        if type(rnd) is not int or not 1 <= rnd <= 5:
+            raise ValueError("A match is missing a valid Swiss round.")
+        if a not in idx or b not in idx or a == b or winner not in (a, b):
+            raise ValueError(f"Round {rnd} has invalid teams or winner: {a}, {b}, {winner}.")
+        if rnd == 1 and abs(idx[a] - idx[b]) != 8:
+            raise ValueError(f"Round 1 pairing disagrees with the seeds: {a}, {b}.")
+        rounds[rnd - 1].append((idx[a], idx[b], idx[winner]))
     while rounds and not rounds[-1]:
         rounds.pop()
+
+    wins, losses = [0] * 16, [0] * 16
+    for rnd, fixtures in enumerate(rounds, start=1):
+        alive = {i for i in range(16) if wins[i] < 3 and losses[i] < 3}
+        seen: set[int] = set()
+        for a, b, winner in fixtures:
+            if a in seen or b in seen:
+                raise ValueError(f"A team appears more than once in round {rnd}.")
+            if a not in alive or b not in alive or (wins[a], losses[a]) != (wins[b], losses[b]):
+                raise ValueError(f"Round {rnd} pairs teams with incompatible Swiss records.")
+            seen.update((a, b))
+            wins[winner] += 1
+            losses[b if winner == a else a] += 1
+        if rnd < len(rounds) and seen != alive:
+            raise ValueError(f"Round {rnd} is incomplete but results appear in a later round.")
     return rounds
 
 

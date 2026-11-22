@@ -14,8 +14,9 @@
 <style>
 :root {
   --bg: #f6f4ef; --paper: #fffdf8; --sunk: #eeebe3; --line: #e2ddd1; --line-2: #cfc8b8;
-  --ink: #16150f; --ink-2: #4b483f; --mute: #827d70;
+  --ink: #16150f; --ink-2: #4b483f; --mute: #6c675c;
   --accent: #e8590c; --accent-soft: #fde5d6;
+  --accent-text: #a53b08; --win-text: #246b35; --loss-text: #ac252b;
   --c30: #2f9e44; --c30-soft: #dff3e3; --cadv: #1c7ed6; --cadv-soft: #dcebfb; --c03: #e03131; --c03-soft: #fbe0e0;
   --bar: #2b2a25; --shadow: 0 1px 0 rgba(0,0,0,.03), 0 8px 24px -16px rgba(30,25,10,.25);
   --team-dark: #302d2b; --team-light: #736d66; --team-shade: 20%;
@@ -24,11 +25,13 @@
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #121210; --paper: #1a1a17; --sunk: #23231f; --line: #2e2d28; --line-2: #3d3b35;
   --ink: #f1efe8; --ink-2: #c4c0b4; --mute: #8f8a7d; --accent: #ff7a2e; --accent-soft: #3b2415;
+  --accent-text: #ff9c61; --win-text: #64d979; --loss-text: #ff8383;
   --c30: #51cf66; --c30-soft: #173322; --cadv: #4dabf7; --cadv-soft: #15283b; --c03: #ff6b6b; --c03-soft: #3b1b1b;
   --bar: #ece9df; --shadow: none; --team-dark: #bdb7ae; --team-light: #eee9e1; --team-shade: 0%; } }
 :root[data-theme="dark"] {
   --bg: #121210; --paper: #1a1a17; --sunk: #23231f; --line: #2e2d28; --line-2: #3d3b35;
   --ink: #f1efe8; --ink-2: #c4c0b4; --mute: #8f8a7d; --accent: #ff7a2e; --accent-soft: #3b2415;
+  --accent-text: #ff9c61; --win-text: #64d979; --loss-text: #ff8383;
   --c30: #51cf66; --c30-soft: #173322; --cadv: #4dabf7; --cadv-soft: #15283b; --c03: #ff6b6b; --c03-soft: #3b1b1b;
   --bar: #ece9df; --shadow: none; --team-dark: #bdb7ae; --team-light: #eee9e1; --team-shade: 0%; }
 * { box-sizing: border-box; }
@@ -40,11 +43,13 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 Inter
 .muted { color: var(--mute); } .small { font-size: 13px; } .ink2 { color: var(--ink-2); }
 button { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.skip-link { position: absolute; z-index: 30; top: 6px; left: 12px; padding: 6px 10px; transform: translateY(-150%); background: var(--paper); color: var(--ink); }
+.skip-link:focus { transform: translateY(0); }
 
 nav { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 90%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
 nav .wrap { display: flex; align-items: center; gap: 16px; height: 52px; }
 .brand { font: 700 20px/1 var(--head); letter-spacing: .02em; text-transform: uppercase; white-space: nowrap; }
-.brand b { color: var(--accent); }
+.brand b { color: var(--accent-text); }
 .links { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; flex: 1; }
 .links a { text-decoration: none; color: var(--mute); font-size: 14px; padding: 6px 9px; border-radius: 8px; white-space: nowrap; }
 .links a:hover { color: var(--ink); background: var(--sunk); }
@@ -52,12 +57,12 @@ nav .wrap { display: flex; align-items: center; gap: 16px; height: 52px; }
 
 /* hero */
 .hero { padding: 46px 0 10px; }
-.kicker { font: 700 14px var(--head); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+.kicker { font: 700 14px var(--head); letter-spacing: .12em; text-transform: uppercase; color: var(--accent-text); }
 h1 { font: 800 clamp(40px, 7.4vw, 76px)/.95 var(--head); text-transform: uppercase; letter-spacing: -.005em; margin: 10px 0 16px; }
-h1 em { font-style: normal; color: var(--accent); }
+h1 em { font-style: normal; color: var(--accent-text); }
 .lede { font-size: 18px; color: var(--ink-2); max-width: 640px; margin: 0; }
 .updated { margin-top: 10px; font-size: 13px; color: var(--mute); }
-.livebadge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 2px 10px; margin-left: 6px; }
+.livebadge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--accent-text); background: var(--accent-soft); border-radius: 999px; padding: 2px 10px; margin-left: 6px; }
 .livebadge i { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: pulse 1.6s infinite; }
 @keyframes pulse { 50% { opacity: .3; } }
 .heroGrid { margin-top: 22px; }
@@ -78,7 +83,7 @@ h1 em { font-style: normal; color: var(--accent); }
 .chip .team-logo, .node .team-logo { width: 17px; height: 17px; }
 
 section { padding: 38px 0 6px; }
-.eyebrow { font: 700 13px var(--head); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+.eyebrow { font: 700 13px var(--head); letter-spacing: .14em; text-transform: uppercase; color: var(--accent-text); }
 h2 { font: 800 clamp(30px, 4.6vw, 44px)/1 var(--head); text-transform: uppercase; margin: 6px 0 10px; }
 .intro { font-size: 17px; color: var(--ink-2); margin: 0 0 20px; max-width: 700px; }
 .intro b { color: var(--ink); }
@@ -100,7 +105,7 @@ h2 { font: 800 clamp(30px, 4.6vw, 44px)/1 var(--head); text-transform: uppercase
 .pick .top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .pick .team { font-weight: 650; font-size: 15.5px; }
 .pick .why { font-size: 13px; color: var(--mute); margin-top: 2px; line-height: 1.4; }
-.mark { font-weight: 800; margin-right: 6px; } .mark.hit { color: var(--c30); } .mark.miss { color: var(--c03); } .mark.open { color: var(--mute); }
+.mark { font-weight: 800; margin-right: 6px; } .mark.hit { color: var(--win-text); } .mark.miss { color: var(--loss-text); } .mark.open { color: var(--mute); }
 .verdict { display: flex; gap: 10px 18px; flex-wrap: wrap; align-items: baseline; margin-top: 14px; }
 .verdict .big { font: 800 36px/1 var(--head); }
 .note { background: var(--sunk); border-radius: 12px; padding: 10px 14px; color: var(--ink-2); font-size: 14px; margin-bottom: 14px; }
@@ -134,8 +139,8 @@ details.more > div { padding: 0 16px 16px; }
 .split .striped, .duel-bar .striped { background-image: repeating-linear-gradient(135deg, transparent 0 4px, rgb(20 16 12 / .42) 4px 6px, rgb(255 250 240 / .30) 6px 7px); }
 .mu .meta { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--mute); gap: 6px; }
 .tag { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; border-radius: 6px; padding: 1px 7px; }
-.tag.flip { background: var(--accent-soft); color: var(--accent); } .tag.fav { background: var(--sunk); color: var(--ink-2); }
-.res { font-weight: 700; color: var(--c30); }
+.tag.flip { background: var(--accent-soft); color: var(--accent-text); } .tag.fav { background: var(--sunk); color: var(--ink-2); }
+.res { font-weight: 700; color: var(--win-text); }
 
 /* swiss paths */
 .swissWrap { overflow-x: auto; }
@@ -200,6 +205,7 @@ footer { padding: 40px 0 70px; color: var(--mute); font-size: 13px; border-top: 
 footer a { color: var(--ink-2); }
 
 @media (max-width: 760px) {
+  .iconbtn, .tab, .btn, .chip { min-height: 44px; }
   .sheet, .r1, .bracket { grid-template-columns: 1fr; }
   .links { display: none; }
   .race .row { grid-template-columns: 96px 1fr 46px; }
@@ -220,13 +226,15 @@ footer a { color: var(--ink-2); }
 </style>
 </head>
 <body>
-<nav><div class="wrap">
+<a class="skip-link" href="#report">Skip to the report</a>
+<nav aria-label="Report sections"><div class="wrap">
   <div class="brand">SGP<b>/</b>Major Sim</div>
   <div class="links"><a href="#picks">Pick'em</a><a href="#stageGuide">Stage guide</a><a href="#odds">Stage finishes</a><a href="#explore">Explore</a><a href="#trust">How it works</a></div>
   <button class="iconbtn" id="theme" aria-label="Toggle light or dark theme">◐ Theme</button>
 </div></nav>
 
-<div class="wrap">
+<main class="wrap" id="report" tabindex="-1">
+<p id="loadError" class="note" role="alert" hidden></p>
 <header class="hero">
   <div class="kicker">PGL Major Singapore · Nov 24 – Dec 13</div>
   <h1>We played the Singapore Major <em>5,000</em> times</h1>
@@ -305,11 +313,13 @@ footer a { color: var(--ink-2); }
     <li><strong>Play out the Major</strong>We simulate the Swiss rounds and playoffs thousands of times. The Pick’em card aims for five or more correct picks.</li>
     <li><strong>Check against past Majors</strong>We replay completed stages and compare how many picks the model gets right against a card based on seeds.</li>
   </ol>
+  <div id="seedReplay">
   <h3>Did it beat the seeds?</h3>
   <p class="intro" id="trustIntro"></p>
   <div class="card">
     <div class="legend"><span><i style="background:var(--accent)"></i>Model picks</span><span><i style="background:var(--mute)"></i>Seed picks</span><span>Dashed line = 5 correct</span></div>
     <div class="plot" id="replay"></div>
+  </div>
   </div>
   <details class="more" id="evidence"><summary>See the replay and match benchmark numbers</summary><div id="evidenceBody"></div></details>
 </section>
@@ -330,7 +340,7 @@ footer a { color: var(--ink-2); }
   </div></details>
   <details class="more"><summary>What fans are talking about</summary><div class="scroll" id="crowdBox"></div></details>
 </section>
-</div>
+</main>
 <footer><div class="wrap" id="foot"></div></footer>
 
 <script src="team-branding.js"></script>
@@ -353,7 +363,13 @@ let D, cur = 1, guide = 1, pathTeam = null, survSel = new Set(), mine = {};
     redraw();
   };
 })();
-fetch("data.json").then(r => r.json()).then(d => { D = d; init(); }).catch(e => { document.body.insertAdjacentHTML("afterbegin", `<p style="padding:20px">Couldn't load data.json (${esc(e.message)}).</p>`); });
+fetch("data.json").then(r => {
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}).then(d => { D = d; init(); }).catch(() => {
+  $("#loadError").textContent = "The forecast data couldn’t load. Refresh the page to try again.";
+  $("#loadError").hidden = false;
+});
 
 const stage = n => D.stages.find(s => s.stage === n);
 const isLive = () => D.stages.some(s => s.status === "live") || D.playoffs.status === "live";
@@ -403,15 +419,16 @@ function renderRace() {
 }
 
 /* ---------------- tabs + cheat sheet ---------------- */
+const pastCutoff = s => s.pick_locked || Date.now() >= Date.parse(s.pick_cutoff);
 function stLabel(s) {
   if (s.status === "complete") return "done";
   if (s.status === "live") return "live";
-  if (s.pick_locked) return "awaiting results";
+  if (pastCutoff(s)) return "awaiting results";
   return s.seeds_known ? "ready" : "preview";
 }
 function renderTabs() {
   const t = D.stages.map(s => `<button class="tab ${s.stage === cur ? "on" : ""}" data-s="${s.stage}" aria-pressed="${s.stage === cur}">Stage ${s.stage}<span class="st">${stLabel(s)}</span></button>`);
-  t.push(`<button class="tab ${cur === 4 ? "on" : ""}" data-s="4" aria-pressed="${cur === 4}">Playoffs<span class="st">${D.playoffs.seeds_known || D.playoffs.pick_locked ? stLabel(D.playoffs) : "later"}</span></button>`);
+  t.push(`<button class="tab ${cur === 4 ? "on" : ""}" data-s="4" aria-pressed="${cur === 4}">Playoffs<span class="st">${D.playoffs.seeds_known || pastCutoff(D.playoffs) ? stLabel(D.playoffs) : "later"}</span></button>`);
   $("#tabs").innerHTML = t.join("");
   document.querySelectorAll("#tabs .tab").forEach(b => b.onclick = () => {
     cur = +b.dataset.s; renderTabs(); renderStage();
@@ -437,7 +454,7 @@ function renderStage() {
   $("#picksIntro").innerHTML = s.seeds_known
     ? `<b>Stage ${s.stage}, ${DATES[s.stage]}.</b> Get five of these ten picks right to clear the challenge.`
     : `<b>Stage ${s.stage}, ${DATES[s.stage]}.</b> These are projected picks. Each percentage includes the chance of reaching the stage and finishing in that slot.`;
-  if (!s.picks) {
+  if (!s.picks || (!s.seeds_known && pastCutoff(s))) {
     $("#stageNote").innerHTML = '<div class="note">No valid pre-cutoff card is available to score.</div>';
     $("#sheet").innerHTML = "";
     return;
@@ -460,12 +477,14 @@ function renderStage() {
     <details class="more" id="builder"><summary>Build your own picks and compare</summary><div>
       <p class="small ink2">Tap a team to cycle it through <b>3-0 → Advance → 0-3 → none</b>. Both cards are compared on the same sample of ${s.outcomes.length.toLocaleString()} simulations. The headline odds use the full run.</p>
       <div class="chips" id="chips"></div>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px"><button class="btn" id="reset">Use our picks</button><button class="btn" id="clear">Clear</button><span class="ink2" id="myScore"></span></div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px"><button class="btn" id="reset">Use our picks</button><button class="btn" id="clear">Clear</button><span class="ink2" id="myScore" role="status"></span></div>
     </div></details>
     <details class="more" id="pickDist"><summary>See the spread of possible scores</summary><div>
       <p class="details-copy">This card averages <strong>${s.expected_correct.toFixed(1)} correct picks</strong> across the simulations.</p>
       <div class="plot" id="dist"></div></div></details>`;
-  $("#pickDist").ontoggle = () => { if ($("#pickDist")?.open) distBars($("#dist"), s.score_dist); };
+  $("#pickDist").ontoggle = ({ target }) => {
+    if (target.isConnected && target.open) distBars($("#dist"), s.score_dist);
+  };
   mine = {}; setOurs(s, mine); renderBuilder(s);
   $("#reset").onclick = () => { mine = {}; setOurs(s, mine); renderBuilder(s); };
   $("#clear").onclick = () => { mine = {}; renderBuilder(s); };
@@ -487,11 +506,13 @@ function scoreSet(s, picks) {
 function renderBuilder(s) {
   const NEED = { 0: 2, 1: 6, 2: 2 };
   const teams = s.teams.filter(t => t.p_in_stage > 0.02).map(t => t.team);
-  $("#chips").innerHTML = teams.map(t => `<button class="chip ${mine[t] !== undefined ? "k" + mine[t] : ""}" data-t="${esc(t)}">${teamLabel(t)}</button>`).join("");
-  document.querySelectorAll("#chips .chip").forEach(c => c.onclick = () => {
+  const slotName = ["3-0", "Advance", "0-3"];
+  $("#chips").innerHTML = teams.map(t => `<button class="chip ${mine[t] !== undefined ? "k" + mine[t] : ""}" data-t="${esc(t)}" aria-label="${esc(t)}, ${slotName[mine[t]] || "not picked"}">${teamLabel(t)}</button>`).join("");
+  document.querySelectorAll("#chips .chip").forEach((c, index) => c.onclick = () => {
     const t = c.dataset.t, order = [0, 1, 2, undefined]; let i = order.indexOf(mine[t]);
     for (let k = 1; k <= 4; k++) { const nx = order[(i + k) % 4]; if (nx === undefined || Object.values(mine).filter(v => v === nx).length < NEED[nx]) { if (nx === undefined) delete mine[t]; else mine[t] = nx; break; } }
     renderBuilder(s);
+    $("#chips").children[index].focus({ preventScroll: true });
   });
   const n = [0, 1, 2].map(c => Object.values(mine).filter(v => v === c).length);
   if (n[0] + n[1] + n[2] < 10) { $("#myScore").textContent = `${n[0]}/2 · ${n[1]}/6 · ${n[2]}/2 picked`; return; }
@@ -505,19 +526,21 @@ function renderPlayoffs() {
   const P = D.playoffs;
   $("#picksIntro").innerHTML = `<b>Playoffs, ${DATES[4]} at the Singapore Indoor Stadium.</b> 8 teams, single elimination, best-of-three, with a best-of-five Grand Final. The Pick'em card asks for 7 picks: 4 quarterfinals, 2 semis and the champion.`;
   if (!P.seeds_known) {
-    $("#stageNote").innerHTML = `<div class="note">${P.pick_locked ? "The forecast cutoff has passed. No playoff card was saved." : "The bracket is seeded from Stage 3 results. For now, here's how deep each team is likely to go."}</div>`;
+    $("#stageNote").innerHTML = `<div class="note">${pastCutoff(P) ? "The forecast cutoff has passed. No playoff card was saved." : "The bracket is seeded from Stage 3 results. For now, here's how deep each team is likely to go."}</div>`;
     $("#sheet").innerHTML = `<div class="card scroll"><table class="tbl"><tr><th>Team</th><th class="r">Makes playoffs</th><th class="r">Semis</th><th class="r">Final</th><th class="r">Wins it</th></tr>${D.major.slice(0, 12).map(r => `<tr><td><b>${teamLabel(r.team)}</b></td>${["playoffs", "semis", "final", "champion"].map(k => `<td class="r num">${pct(r[k])}</td>`).join("")}</tr>`).join("")}</table></div>`;
     return;
   }
   const sd = P.seeds, pk = P.picks || [], st = P.pick_status || [], slots = P.slots || {};
   const sym = { hit: "✓", miss: "✗", open: "" };
   const order = ["R1M1", "R1M2", "R1M3", "R1M4", "R2M1", "R2M2", "R3M1"];
-  const pairs = [[sd[0], sd[7]], [sd[3], sd[4]], [sd[1], sd[6]], [sd[2], sd[5]], [pk[0], pk[1]], [pk[2], pk[3]], [pk[4], pk[5]]];
+  const winner = i => slots[order[i]]?.winner;
+  const pairs = [[sd[0], sd[7]], [sd[3], sd[4]], [sd[1], sd[6]], [sd[2], sd[5]],
+    [winner(0), winner(1)], [winner(2), winner(3)], [winner(4), winner(5)]];
   const box = i => { const real = slots[order[i]] || {}, a = real.a || pairs[i][0], b = real.b || pairs[i][1], w = real.winner;
     return `<div class="bm"><div class="${w === a && a ? "w" : ""}"><span>${teamLabel(a || "TBD")}</span>${w === a && a ? "<span>W</span>" : ""}</div><div class="${w === b && b ? "w" : ""}"><span>${teamLabel(b || "TBD")}</span>${w === b && b ? "<span>W</span>" : ""}</div>${pk[i] ? `<span class="pk">${st[i] ? `<span class="mark ${st[i]}">${sym[st[i]]}</span>` : ""}Our pick: <b>${esc(pk[i])}</b></span>` : ""}</div>`; };
   const note = !P.picks ? "No valid pre-cutoff card is available to score."
     : P.status !== "upcoming" ? "Picks are locked and marked as results come in."
-    : P.pick_locked ? "The card is frozen. Waiting for results from the feed."
+    : pastCutoff(P) ? "The card is frozen. Waiting for results from the feed."
     : P.p_playoff_challenges === undefined ? `Bracket set. These 7 picks get ${P.expected_correct.toFixed(1)} right on average.`
     : `Bracket set. The card has a ${pct(P.p_playoff_challenges)} simulated chance of clearing all three playoff challenges.`;
   $("#stageNote").innerHTML = `<div class="note">${note}</div>`;
@@ -691,6 +714,7 @@ function updateH2H() {
 /* ---------------- trust ---------------- */
 function renderTrust() {
   const R = D.replay;
+  $("#seedReplay").hidden = !R;
   if (R) {
     const e = R.summary["Ensemble (optimised)"], sb = R.summary["Seed baseline"];
     const formatNote = R.stages.every(s => s.format) ? "" : " This older replay used the wrong match format for Cologne Stage 3.";
@@ -727,7 +751,7 @@ function renderEvidence() {
 /* ---------------- method ---------------- */
 function renderMethod() {
   renderEvidence();
-  const si = Object.keys(D.stand_ins).join(", ");
+  const si = Object.keys(D.stand_ins || {}).join(", ");
   $("#caveats").innerHTML = [
     `<b>Stand-ins aren't penalised</b> (${esc(si)}). Our tests couldn't detect a roster-change effect, so weigh those yourself.`,
     `<b>New rosters are uncertain.</b> GOSH (s1mple's team) has a short track record.`,
@@ -735,11 +759,14 @@ function renderMethod() {
     `<b>Stage 2 and 3 picks are previews</b> until their fields are confirmed. Everything reruns as results come in.`,
   ].map(x => `<li>${x}</li>`).join("");
   const z = D.zoo;
+  $("#zooBox").parentElement.hidden = !z;
   if (z) $("#zooBox").innerHTML = `<p class="small ink2">The comparison covers ${z.eval_n} top-tier matches from ${z.eval_from}. ${z.chronology === "prior_days" ? "Every forecast uses results from earlier days, and some models are refitted monthly." : "This benchmark may have processed same-day results out of order."} <b>Log-loss</b> scores how good the probabilities are (lower is better), and <b>calibration error</b> is how far "70%" is from really winning 70% of the time. The test did not separate the strongest models clearly. The live forecast averages four ratings.</p>
     <div class="scroll"><table class="tbl"><tr><th>Approach</th><th class="r">Log-loss</th><th class="r">Picks winner</th><th class="r">Calibration error</th></tr>${z.results.map(r => `<tr><td>${esc(r.model)}</td><td class="r num">${r.logloss.toFixed(4)}</td><td class="r num">${pct(r.acc, 1)}</td><td class="r num">${pct(r.ece, 1)}</td></tr>`).join("")}</table></div>`;
   const M = D.maps;
+  $("#mapBox").parentElement.hidden = !M;
   if (M) $("#mapBox").innerHTML = `<p class="small ink2">Per-team map strengths from ${M.map_level.n.toLocaleString()} recent maps, plus Valve's Bo1 and Bo3 veto order, tuned on Jul 2025–Feb 2026 and tested on later matches. Map-level log-loss was ${M.map_level.with_map_offsets.logloss.toFixed(4)} with map strengths vs ${M.map_level.no_map_offsets.logloss.toFixed(4)} without. For best-of-one matches it was ${M.bo1.with_veto.logloss.toFixed(3)} vs ${M.bo1.no_veto.logloss.toFixed(3)}. No measurable gain, so it isn't used.</p>`;
   const S = D.sentiment;
+  $("#crowdBox").parentElement.hidden = !S?.teams;
   if (S && S.teams) { const rows = Object.entries(S.teams).sort((a, b) => b[1].share_of_voice - a[1].share_of_voice).slice(0, 12);
     $("#crowdBox").innerHTML = `<p class="small ink2">Share of ${(S.metadata.total_mentions || 0).toLocaleString()} team mentions in public Bluesky posts (${(S.metadata.date_range || []).join(" to ")}). Buzz follows headlines, not strength, so it isn't used in the predictions. Reddit data is pending API approval.</p>
       <table class="tbl"><tr><th>Team</th><th class="r">Share of chatter</th><th class="r">Mood</th></tr>${rows.map(([t, s]) => `<tr><td>${esc(t)}</td><td class="r num">${pct(s.share_of_voice, 1)}</td><td class="r small">${s.mean_compound >= .15 ? "Positive" : s.mean_compound <= -.15 ? "Negative" : "Mixed"}</td></tr>`).join("")}</table>`; }
