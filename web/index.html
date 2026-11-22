@@ -18,25 +18,28 @@
   --accent: #e8590c; --accent-soft: #fde5d6;
   --c30: #2f9e44; --c30-soft: #dff3e3; --cadv: #1c7ed6; --cadv-soft: #dcebfb; --c03: #e03131; --c03-soft: #fbe0e0;
   --bar: #2b2a25; --shadow: 0 1px 0 rgba(0,0,0,.03), 0 8px 24px -16px rgba(30,25,10,.25);
+  --team-l: 57%;
   --head: "Barlow Condensed", "Arial Narrow", sans-serif;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #121210; --paper: #1a1a17; --sunk: #23231f; --line: #2e2d28; --line-2: #3d3b35;
   --ink: #f1efe8; --ink-2: #c4c0b4; --mute: #8f8a7d; --accent: #ff7a2e; --accent-soft: #3b2415;
   --c30: #51cf66; --c30-soft: #173322; --cadv: #4dabf7; --cadv-soft: #15283b; --c03: #ff6b6b; --c03-soft: #3b1b1b;
-  --bar: #ece9df; --shadow: none; } }
+  --bar: #ece9df; --shadow: none; --team-l: 71%; } }
 :root[data-theme="dark"] {
   --bg: #121210; --paper: #1a1a17; --sunk: #23231f; --line: #2e2d28; --line-2: #3d3b35;
   --ink: #f1efe8; --ink-2: #c4c0b4; --mute: #8f8a7d; --accent: #ff7a2e; --accent-soft: #3b2415;
   --c30: #51cf66; --c30-soft: #173322; --cadv: #4dabf7; --cadv-soft: #15283b; --c03: #ff6b6b; --c03-soft: #3b1b1b;
-  --bar: #ece9df; --shadow: none; }
+  --bar: #ece9df; --shadow: none; --team-l: 71%; }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
+section, details[id] { scroll-margin-top: 68px; }
 body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
 .num { font-variant-numeric: tabular-nums; }
 .wrap { max-width: 980px; margin: 0 auto; padding: 0 18px; }
 .muted { color: var(--mute); } .small { font-size: 13px; } .ink2 { color: var(--ink-2); }
 button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
 nav { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 90%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
 nav .wrap { display: flex; align-items: center; gap: 16px; height: 52px; }
@@ -57,23 +60,20 @@ h1 em { font-style: normal; color: var(--accent); }
 .livebadge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 2px 10px; margin-left: 6px; }
 .livebadge i { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: pulse 1.6s infinite; }
 @keyframes pulse { 50% { opacity: .3; } }
-.heroGrid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 18px; margin-top: 26px; }
+.heroGrid { margin-top: 22px; }
 .card { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 18px; box-shadow: var(--shadow); }
 .cardTitle { font: 700 15px var(--head); letter-spacing: .08em; text-transform: uppercase; color: var(--mute); margin: 0 0 10px; }
-.race .row { display: grid; grid-template-columns: 112px 1fr 52px; align-items: center; gap: 10px; height: 30px; }
+.race .row { display: grid; grid-template-columns: minmax(105px, 155px) 1fr 46px; align-items: center; gap: 10px; height: 29px; }
 .race .name { font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .race .track { height: 14px; background: var(--sunk); border-radius: 4px; overflow: hidden; }
 .race .fill { height: 100%; background: var(--bar); border-radius: 4px; animation: grow 1.1s cubic-bezier(.2,.8,.2,1) both; }
 @keyframes grow { from { width: 0; } }
 @media (prefers-reduced-motion: reduce) { .race .fill { animation: none; } }
-.race .row:first-child .fill { background: var(--accent); }
 .race .pct { text-align: right; font: 700 18px var(--head); }
-.facts { display: grid; gap: 10px; }
-.fact { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
-.fact .big { font: 800 30px/1 var(--head); text-transform: uppercase; }
-.fact p { margin: 6px 0 0; font-size: 14px; color: var(--ink-2); }
+.heroJump { display: inline-block; margin-top: 14px; font-size: 14px; font-weight: 700; color: var(--ink); text-underline-offset: 4px; }
+.team-dot { display: inline-block; width: .66em; height: .66em; margin-right: .4em; border-radius: 50%; background: var(--team-color); vertical-align: .05em; }
 
-section { padding: 54px 0 6px; }
+section { padding: 38px 0 6px; }
 .eyebrow { font: 700 13px var(--head); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
 h2 { font: 800 clamp(30px, 4.6vw, 44px)/1 var(--head); text-transform: uppercase; margin: 6px 0 10px; }
 .intro { font-size: 17px; color: var(--ink-2); margin: 0 0 20px; max-width: 700px; }
@@ -96,11 +96,9 @@ h2 { font: 800 clamp(30px, 4.6vw, 44px)/1 var(--head); text-transform: uppercase
 .pick .top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .pick .team { font-weight: 650; font-size: 15.5px; }
 .pick .why { font-size: 13px; color: var(--mute); margin-top: 2px; line-height: 1.4; }
-.meter { display: inline-flex; gap: 3px; vertical-align: 1px; margin-left: 4px; } .meter i { width: 7px; height: 7px; border-radius: 2px; background: var(--line-2); }
-.meter i.on { background: var(--ink); }
 .mark { font-weight: 800; margin-right: 6px; } .mark.hit { color: var(--c30); } .mark.miss { color: var(--c03); } .mark.open { color: var(--mute); }
-.verdict { display: grid; grid-template-columns: auto 1fr; gap: 22px; align-items: center; margin-top: 14px; }
-.verdict .big { font: 800 56px/1 var(--head); }
+.verdict { display: flex; gap: 10px 18px; flex-wrap: wrap; align-items: baseline; margin-top: 14px; }
+.verdict .big { font: 800 36px/1 var(--head); }
 .note { background: var(--sunk); border-radius: 12px; padding: 10px 14px; color: var(--ink-2); font-size: 14px; margin-bottom: 14px; }
 
 details.more { margin-top: 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); }
@@ -109,6 +107,13 @@ details.more > summary::after { content: "+"; color: var(--mute); font-weight: 4
 details.more[open] > summary::after { content: "–"; }
 details.more > summary::-webkit-details-marker { display: none; }
 details.more > div { padding: 0 16px 16px; }
+.explore { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 12px; align-items: start; }
+.explore details { min-width: 0; }
+.explore details[open], .explore #h2h { grid-column: 1 / -1; }
+.details-copy { max-width: 67ch; color: var(--ink-2); margin: 0 0 13px; font-size: 14px; }
+.plot svg { display: block; max-width: 100%; }
+#replay { margin-top: 12px; }
+#replay .stage-label { font-size: 11px; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip { border: 1px solid var(--line-2); background: var(--paper); border-radius: 999px; padding: 5px 11px; font-size: 13px; cursor: pointer; }
 .chip.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
@@ -147,18 +152,39 @@ details.more > div { padding: 0 16px 16px; }
 .tbl td { padding: 9px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
 .tbl tr:last-child td { border-bottom: 0; }
 .r { text-align: right; }
-.stack { display: flex; height: 12px; border-radius: 3px; overflow: hidden; min-width: 180px; background: var(--sunk); }
-.stack i { display: block; height: 100%; }
+.stack { display: flex; height: 22px; border-radius: 4px; overflow: hidden; background: var(--sunk); }
+.stack > span { flex: 0 0 var(--share); min-width: 0; overflow: hidden; text-align: center; white-space: nowrap; color: #191611; font-size: 11px; font-weight: 700; align-content: center; }
+.finish-legend { display: flex; flex-wrap: wrap; gap: 7px 20px; margin-bottom: 10px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.finish-legend > div { display: flex; gap: 6px; align-items: center; font-size: 12px; color: var(--ink-2); }
+.finish-legend strong { margin-right: 2px; }
+.finish-key { padding: 0 5px; border-radius: 3px; font-weight: 700; color: #191611; }
+.finish-row + .finish-row { border-top: 1px solid var(--line); }
+.finish-row summary { display: grid; grid-template-columns: minmax(120px, 1fr) minmax(0, 2.1fr) 105px 16px; gap: 10px; align-items: center; padding: 8px 0; list-style: none; cursor: pointer; font-size: 13px; }
+.finish-row summary::-webkit-details-marker { display: none; }
+.finish-row summary::after { content: "+"; text-align: center; color: var(--ink-2); font-size: 16px; }
+.finish-row[open] summary::after { content: "−"; }
+.finish-row summary:hover .finish-name, .finish-row[open] .finish-name { text-decoration: underline; text-underline-offset: 3px; }
+.finish-name { font-weight: 700; line-height: 1.3; }
+.finish-rate { text-align: right; white-space: nowrap; }
+.finish-breakdown { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin: 0 0 10px; padding: 8px; background: var(--sunk); border-radius: 6px; font-size: 12px; text-align: center; }
+.finish-breakdown strong { display: block; font-size: 15px; }
 .legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12.5px; color: var(--mute); margin-top: 10px; }
 .legend i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+.legend .team-dot { border-radius: 50%; }
 .scroll { overflow-x: auto; }
 
 svg text { fill: var(--mute); font: 12px Inter, sans-serif; }
 svg .lbl { fill: var(--ink); font-weight: 600; }
 select { background: var(--paper); color: var(--ink); border: 1px solid var(--line-2); border-radius: 8px; padding: 7px 10px; font: inherit; max-width: 100%; }
-.h2h { display: grid; grid-template-columns: 1fr 1.25fr; gap: 18px; align-items: start; }
 .vs { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; text-align: center; }
-.vs .p { font: 800 46px/1 var(--head); margin-top: 8px; }
+.vs select { width: 100%; min-width: 0; }
+.vs > div { min-width: 0; }
+.duel { display: grid; grid-template-columns: minmax(65px, 90px) minmax(0, 1fr); align-items: center; gap: 10px; margin-top: 10px; font-size: 13px; }
+.duel-bar { display: flex; overflow: hidden; height: 11px; border-radius: 4px; background: var(--sunk); }
+.duel-values { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 3px; font-weight: 700; }
+.model-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 0 0 20px; padding: 0; list-style: none; }
+.model-steps li { padding-top: 10px; border-top: 1px solid var(--line-2); font-size: 14px; color: var(--ink-2); }
+.model-steps strong { display: block; color: var(--ink); margin-bottom: 3px; }
 .bracket { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: center; }
 .bm { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; margin: 8px 0; font-size: 14px; background: var(--paper); }
 .bm div { display: flex; justify-content: space-between; gap: 6px; }
@@ -169,17 +195,29 @@ footer { padding: 40px 0 70px; color: var(--mute); font-size: 13px; border-top: 
 footer a { color: var(--ink-2); }
 
 @media (max-width: 760px) {
-  .heroGrid, .sheet, .r1, .h2h, .verdict, .bracket { grid-template-columns: 1fr; }
+  .sheet, .r1, .bracket { grid-template-columns: 1fr; }
   .links { display: none; }
   .race .row { grid-template-columns: 96px 1fr 46px; }
-  .verdict .big { font-size: 46px; }
+}
+@media (max-width: 560px) {
+  .explore, .model-steps { grid-template-columns: minmax(0, 1fr); }
+  .finish-row summary { grid-template-columns: minmax(0, 1fr) auto 14px; gap: 4px 8px; }
+  .finish-row summary::after { grid-column: 3; grid-row: 1; }
+  .finish-rate { grid-column: 2; grid-row: 1; }
+  .finish-row .stack { grid-column: 1 / -1; grid-row: 2; height: 17px; }
+  .finish-row .stack > span { line-height: 17px; }
+  .finish-breakdown { grid-template-columns: repeat(3, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .livebadge i { animation: none; }
 }
 </style>
 </head>
 <body>
 <nav><div class="wrap">
   <div class="brand">SGP<b>/</b>Major Sim</div>
-  <div class="links"><a href="#picks">Pick'em</a><a href="#round1">Round 1</a><a href="#paths">Paths</a><a href="#odds">Odds</a><a href="#trophy">Trophy</a><a href="#h2h">Head-to-head</a><a href="#trust">Can we trust it?</a><a href="#method">Method</a></div>
+  <div class="links"><a href="#picks">Pick'em</a><a href="#round1">Round 1</a><a href="#odds">Stage finishes</a><a href="#explore">Explore</a><a href="#trust">How it works</a></div>
   <button class="iconbtn" id="theme" aria-label="Toggle light or dark theme">◐ Theme</button>
 </div></nav>
 
@@ -187,11 +225,11 @@ footer a { color: var(--ink-2); }
 <header class="hero">
   <div class="kicker">PGL Major Singapore · Nov 24 – Dec 13</div>
   <h1>We played the Singapore Major <em>5,000</em> times</h1>
-  <p class="lede" id="lede">Every team is rated on tens of thousands of pro matches. Then the whole event, all three Swiss stages and the playoffs, is simulated over and over. Here's who comes out on top, plus a Pick'em cheat sheet built from the results.</p>
+  <p class="lede">See who could win it all, then build a Pick’em card from the simulated results.</p>
+  <a class="heroJump" href="#picks">Jump to our picks ↓</a>
   <div class="updated" id="updated"></div>
   <div class="heroGrid">
-    <div class="card"><div class="cardTitle">Chance to lift the trophy</div><div class="race" id="race"></div></div>
-    <div class="facts" id="facts"></div>
+    <div class="card"><div class="cardTitle">Top five title favourites</div><div class="race" id="race"></div></div>
   </div>
 </header>
 
@@ -199,7 +237,7 @@ footer a { color: var(--ink-2); }
   <div class="eyebrow">Pick'em cheat sheet</div>
   <h2>Our picks</h2>
   <p class="intro" id="picksIntro"></p>
-  <div class="tabs" id="tabs" role="tablist"></div>
+  <div class="tabs" id="tabs" role="group" aria-label="Pick’em stage"></div>
   <div id="stageNote"></div>
   <div id="sheet"></div>
 </section>
@@ -211,58 +249,63 @@ footer a { color: var(--ink-2); }
   <div class="card"><div class="r1" id="r1"></div></div>
 </section>
 
-<section id="paths">
-  <div class="eyebrow">Every route through the Swiss</div>
-  <h2>Who ends up where</h2>
-  <p class="intro">Each box is a record a team can hold. By default it lists the teams most likely to pass through it. <b>Tap a team</b> to see its own route: how likely it is to reach each record.</p>
-  <div class="card">
-    <div class="chips pickTeam" id="pathTeams"></div>
-    <div class="swissWrap"><div class="swiss" id="swiss"></div></div>
-    <div class="legend"><span><i style="background:var(--c30)"></i>Qualified</span><span><i style="background:var(--c03)"></i>Eliminated</span><span>Scroll sideways on mobile →</span></div>
-  </div>
-</section>
-
 <section id="odds">
-  <div class="eyebrow">Stage odds</div>
   <h2>How every team finishes</h2>
   <p class="intro" id="oddsIntro"></p>
-  <div class="card scroll"><table class="tbl" id="oddsTbl"></table>
-    <div class="legend"><span><i style="background:var(--c30)"></i>3-0</span><span><i style="background:color-mix(in srgb, var(--cadv) 85%, white)"></i>3-1</span><span><i style="background:color-mix(in srgb, var(--cadv) 55%, white)"></i>3-2</span><span><i style="background:color-mix(in srgb, var(--c03) 45%, white)"></i>2-3</span><span><i style="background:color-mix(in srgb, var(--c03) 70%, white)"></i>1-3</span><span><i style="background:var(--c03)"></i>0-3</span></div>
+  <div class="card">
+    <div class="finish-legend" id="finishLegend"></div>
+    <div id="oddsRows"></div>
   </div>
 </section>
 
-<section id="trophy">
-  <div class="eyebrow">Road to the trophy</div>
-  <h2>How far each team gets</h2>
-  <p class="intro" id="trophyIntro"></p>
-  <div class="card"><div class="chips pickTeam" id="survTeams"></div><div id="surv"></div></div>
-</section>
-
-<section id="h2h">
-  <div class="eyebrow">Head-to-head</div>
-  <h2>Any matchup</h2>
-  <p class="intro">Pick two teams, or tap a square in the grid. A best-of-three favours the stronger team more than a single map does, which is why upsets pile up in the early Bo1 rounds.</p>
-  <div class="h2h">
-    <div class="card"><div class="vs"><div><select id="ta" aria-label="Team A"></select><div class="p num" id="pa"></div></div><div class="muted">vs</div><div><select id="tb" aria-label="Team B"></select><div class="p num" id="pb"></div></div></div>
-      <p class="small ink2" id="vsText" style="margin:14px 0 0"></p></div>
-    <div class="card scroll"><div class="cardTitle">Top 16: row team's chance vs column team (Bo3)</div><div id="heat"></div></div>
+<section id="explore">
+  <h2>Explore the matchups and paths</h2>
+  <div class="explore">
+    <details class="more" id="paths">
+      <summary>Follow a team through Swiss</summary>
+      <div>
+        <p class="details-copy">Pick a team to see its chance of reaching each record after each round.</p>
+        <div class="chips pickTeam" id="pathTeams"></div>
+        <div class="swissWrap" tabindex="0" role="region" aria-label="Swiss paths, scroll for later rounds"><div class="swiss" id="swiss"></div></div>
+        <div class="legend"><span><i style="background:var(--c30)"></i>Advances</span><span><i style="background:var(--c03)"></i>Eliminated</span></div>
+      </div>
+    </details>
+    <details class="more" id="trophy">
+      <summary>Compare routes to the trophy</summary>
+      <div>
+        <p class="details-copy">Pick teams to compare their chance of reaching each round. Invited teams skip the stages before they join.</p>
+        <div class="chips pickTeam" id="survTeams"></div><div class="plot" id="surv"></div>
+      </div>
+    </details>
+    <details class="more" id="h2h">
+      <summary>Compare two teams head-to-head</summary>
+      <div>
+        <p class="details-copy">Choose two teams to compare their chances over one map and a best-of-three.</p>
+        <div class="vs"><div><select id="ta" aria-label="Team A"></select></div><div class="muted">vs</div><div><select id="tb" aria-label="Team B"></select></div></div>
+        <div id="duels" aria-live="polite"></div>
+      </div>
+    </details>
   </div>
 </section>
 
 <section id="trust">
-  <div class="eyebrow">Reality check</div>
-  <h2>Can a model beat the seeds?</h2>
+  <h2>How the model works</h2>
+  <ol class="model-steps">
+    <li><strong>Rate the teams</strong>Four rating systems learn from match results. We combine their estimates into one win chance for each matchup.</li>
+    <li><strong>Play out the Major</strong>We simulate the Swiss rounds and playoffs thousands of times. The Pick’em card aims for five or more correct picks.</li>
+    <li><strong>Check against past Majors</strong>We replay completed stages and compare how many picks the model gets right against a card based on seeds.</li>
+  </ol>
+  <h3>Did it beat the seeds?</h3>
   <p class="intro" id="trustIntro"></p>
-  <div class="card"><div id="replay"></div><div class="legend"><span><i style="background:var(--accent)"></i>Our picks</span><span><i style="background:var(--mute)"></i>Picking purely by seed</span><span>Dashed line = 5 correct</span></div></div>
-  <div class="card" style="margin-top:14px"><ul class="plain" id="trustFacts"></ul></div>
+  <div class="card">
+    <div class="legend"><span><i style="background:var(--accent)"></i>Model picks</span><span><i style="background:var(--mute)"></i>Seed picks</span><span>Dashed line = 5 correct</span></div>
+    <div class="plot" id="replay"></div>
+  </div>
 </section>
 
 <section id="method">
-  <div class="eyebrow">For the stats nerds</div>
-  <h2>Method & caveats</h2>
-  <p class="intro">How it works, what was tested, and where it can be wrong.</p>
-  <div class="card"><ul class="plain" id="caveats"></ul></div>
-  <details class="more"><summary>How the predictions are made</summary><div><ul class="plain">
+  <h2>Research details</h2>
+  <details class="more"><summary>Model assumptions and limits</summary><div><ul class="plain" id="caveats"></ul><ul class="plain">
     <li><b>Ratings:</b> we combine four team rating systems (Elo, Glicko-2, TrueSkill, Bradley-Terry) using available match history from Valve and Liquipedia.</li>
     <li><b>Simulation:</b> the Swiss simulation groups teams with the same record, uses the Buchholz tiebreaker and follows Valve's late-round pairing order. The live forecast uses Bo1 and Bo3 as scheduled, and the playoffs use a Bo5 final.</li>
     <li><b>Pick'em:</b> we try swaps and replacements to find a 10-team card with a higher simulated chance of getting 5+ correct.</li>
@@ -270,7 +313,7 @@ footer a { color: var(--ink-2); }
   </ul></div></details>
   <details class="more"><summary>Model comparison: 10 approaches tested on historical matches</summary><div id="zooBox"></div></details>
   <details class="more"><summary>Map pools: tested, didn't help</summary><div id="mapBox"></div></details>
-  <details class="more"><summary>What the internet is saying (weak signal)</summary><div id="crowdBox"></div></details>
+  <details class="more"><summary>What fans are talking about</summary><div class="scroll" id="crowdBox"></div></details>
 </section>
 </div>
 <footer><div class="wrap" id="foot"></div></footer>
@@ -280,7 +323,6 @@ const $ = s => document.querySelector(s);
 const pct = (x, d = 0) => (x == null || isNaN(x)) ? "–" : (100 * x).toFixed(d) + "%";
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-const odds = p => p >= .97 ? "almost certainly" : p >= .78 ? "about 4 in 5" : p >= .7 ? "about 3 in 4" : p >= .6 ? "about 2 in 3" : p >= .45 ? "about half" : p >= .3 ? "about 1 in 3" : p >= .22 ? "about 1 in 4" : p >= .17 ? "about 1 in 5" : p >= .12 ? "about 1 in 8" : p >= .08 ? "about 1 in 10" : "rarely";
 const DATES = { 1: "Nov 24–27", 2: "Nov 28–Dec 1", 3: "Dec 2–6", 4: "Dec 10–13" };
 const SLOT_DEF = [["3-0", 0, "s30", "Go 3-0", "Unbeaten · 2 picks", "p_3_0"], ["3-1/3-2", 1, "sadv", "Advance", "3-1 or 3-2 · 6 picks", "p_advance_31_32"], ["0-3", 2, "s03", "Go 0-3", "Winless · 2 picks", "p_0_3"]];
 let D, cur = 1, pathTeam = null, survSel = new Set(), mine = {};
@@ -299,32 +341,30 @@ fetch("data.json").then(r => r.json()).then(d => { D = d; init(); }).catch(e => 
 
 const stage = n => D.stages.find(s => s.stage === n);
 const isLive = () => D.stages.some(s => s.status === "live") || D.playoffs.status === "live";
+const teamColor = team => `oklch(var(--team-l) .16 ${(30 + (D.matchups?.teams.indexOf(team) ?? 0) * 137.508 + 360) % 360})`;
+const teamDot = team => `<i class="team-dot" aria-hidden="true" style="--team-color:${teamColor(team)}"></i>`;
+const teamLabel = team => teamDot(team) + esc(team);
 
 function init() {
   const active = D.stages.find(s => s.status !== "complete");
   cur = active ? active.stage : 4;
-  $("#lede").textContent = `Every team is rated on ${Math.floor(D.n_matches / 1000)},000+ pro matches since CS2 launched. Then the whole event, all three Swiss stages and the playoffs, is simulated over and over. Here's who comes out on top, plus a Pick'em cheat sheet built from the results.`;
   $("#updated").innerHTML = `Updated ${esc(D.generated)} · results through ${esc(D.data_through)}${isLive() ? `<span class="livebadge"><i></i>Live</span>` : ""}`;
-  survSel = new Set(D.major.slice(0, 5).map(r => r.team));
-  renderFacts(); renderTabs(); renderStage(); renderTrophy(); initH2H(); renderTrust(); renderMethod();
+  survSel = new Set(D.major.slice(0, 3).map(r => r.team));
+  renderRace(); renderTabs(); renderStage(); initH2H(); renderTrust(); renderMethod();
+  $("#trophy").addEventListener("toggle", renderTrophy);
   $("#foot").innerHTML = `Built with public data from Valve's regional standings and Liquipedia (CC-BY-SA). Not affiliated with Valve or PGL. <a href="https://github.com/aamarnath1/cs2-major-predictor">Source on GitHub</a> · generated ${esc(D.generated)}.`;
 }
-function redraw() { if (!D) return; renderStage(); renderTrophy(); renderHeat(); renderTrust(); }
+function redraw() {
+  if (!D) return;
+  renderTrophy();
+  renderTrust();
+  if ($("#pickDist")?.open) distBars($("#dist"), stage(cur).score_dist);
+}
 
 /* ---------------- hero ---------------- */
-function renderFacts() {
-  const top = D.major.slice(0, 8), max = top[0].champion;
-  $("#race").innerHTML = top.map(r => `<div class="row"><div class="name">${esc(r.team)}</div><div class="track"><div class="fill" style="width:${(100 * r.champion / max).toFixed(1)}%"></div></div><div class="pct num">${pct(r.champion)}</div></div>`).join("");
-  const s1 = stage(1);
-  const flips = (s1.round1 || []).map(m => ({ ...m, gap: Math.abs(m.p_a - .5) })).sort((a, b) => a.gap - b.gap);
-  const best30 = [...s1.teams].sort((a, b) => b.p_3_0 - a.p_3_0)[0];
-  const fav = D.major[0];
-  const facts = [
-    [fav.team, `Favourites at ${pct(fav.champion)}, yet they still fall short ${odds(1 - fav.champion)} times. Nobody is a lock.`],
-    [best30.team, `Likeliest to go 3-0 in Stage 1, and even that's only ${pct(best30.p_3_0)}. The opening stage is wide open.`],
-  ];
-  if (flips[0]) facts.push([`${flips[0].a} vs ${flips[0].b}`, `The closest opening match: ${pct(flips[0].p_a)} – ${pct(1 - flips[0].p_a)} on a single map.`]);
-  $("#facts").innerHTML = facts.map(([b, p]) => `<div class="fact"><div class="big">${esc(b)}</div><p>${p}</p></div>`).join("");
+function renderRace() {
+  const top = D.major.slice(0, 5), max = top[0].champion || 1;
+  $("#race").innerHTML = top.map(r => `<div class="row"><div class="name" title="${esc(r.team)}">${teamLabel(r.team)}</div><div class="track" aria-hidden="true"><div class="fill" style="width:${(100 * r.champion / max).toFixed(1)}%;background:${teamColor(r.team)}"></div></div><div class="pct num">${pct(r.champion)}</div></div>`).join("");
 }
 
 /* ---------------- tabs + cheat sheet ---------------- */
@@ -335,13 +375,14 @@ function stLabel(s) {
   return s.seeds_known ? "ready" : "preview";
 }
 function renderTabs() {
-  const t = D.stages.map(s => `<button class="tab ${s.stage === cur ? "on" : ""}" data-s="${s.stage}" role="tab">Stage ${s.stage}<span class="st">${stLabel(s)}</span></button>`);
-  t.push(`<button class="tab ${cur === 4 ? "on" : ""}" data-s="4" role="tab">Playoffs<span class="st">${D.playoffs.seeds_known || D.playoffs.pick_locked ? stLabel(D.playoffs) : "later"}</span></button>`);
+  const t = D.stages.map(s => `<button class="tab ${s.stage === cur ? "on" : ""}" data-s="${s.stage}" aria-pressed="${s.stage === cur}">Stage ${s.stage}<span class="st">${stLabel(s)}</span></button>`);
+  t.push(`<button class="tab ${cur === 4 ? "on" : ""}" data-s="4" aria-pressed="${cur === 4}">Playoffs<span class="st">${D.playoffs.seeds_known || D.playoffs.pick_locked ? stLabel(D.playoffs) : "later"}</span></button>`);
   $("#tabs").innerHTML = t.join("");
-  document.querySelectorAll(".tab").forEach(b => b.onclick = () => { cur = +b.dataset.s; pathTeam = null; renderTabs(); renderStage(); });
+  document.querySelectorAll(".tab").forEach(b => b.onclick = () => {
+    cur = +b.dataset.s; pathTeam = null; renderTabs(); renderStage();
+    $(`#tabs [data-s="${cur}"]`).focus({ preventScroll: true });
+  });
 }
-
-function meter(rank, n) { const lvl = Math.max(1, 5 - Math.floor(4 * rank / Math.max(n - 1, 1))); return `<span class="meter" title="How this pick ranks against the other options for this slot">${[1, 2, 3, 4, 5].map(i => `<i class="${i <= lvl ? "on" : ""}"></i>`).join("")}</span>`; }
 
 function reason(slot, t, s, rankQ, r1) {
   const opp = r1 ? (r1.a === t.team ? [r1.b, r1.p_a] : [r1.a, 1 - r1.p_a]) : null;
@@ -359,7 +400,7 @@ function renderStage() {
   const r1Of = Object.fromEntries((s.round1 || []).flatMap(m => [[m.a, m], [m.b, m]]));
   const hits = Object.values(s.pick_status || {}).flatMap(o => Object.values(o)).filter(v => v === "hit").length;
   $("#picksIntro").innerHTML = s.seeds_known
-    ? `<b>Stage ${s.stage}, ${DATES[s.stage]}.</b> Valve's Pick'em asks for 10 picks per stage, and you need 5 right to clear the challenge. ${s.stage === 3 ? "Every Stage 3 match is best-of-three." : "Most matches are a single map, so expect chaos."}`
+    ? `<b>Stage ${s.stage}, ${DATES[s.stage]}.</b> Get five of these ten picks right to clear the challenge.`
     : `<b>Stage ${s.stage}, ${DATES[s.stage]}.</b> Half this field comes out of the previous stage, so these are early picks. They update automatically once the teams are confirmed.`;
   if (!s.picks) {
     $("#stageNote").innerHTML = '<div class="note">No valid pre-cutoff card is available to score.</div>';
@@ -372,23 +413,23 @@ function renderStage() {
   const sym = { hit: "✓", miss: "✗", open: "•" };
   const cols = SLOT_DEF.map(([slot, , cls, title, sub, key]) => {
     const ps = (s.picks[slot] || []).map(t => byT[t]).filter(Boolean);
-    const sorted = [...s.teams].sort((a, b) => b[key] - a[key]).map(t => t.team);
     return `<div class="card slot ${cls}"><h3>${title}</h3><div class="sub">${sub}</div>${ps.map(t => {
       const st = (s.pick_status[slot] || {})[t.team], rec = s.status !== "upcoming" && t.record ? ` <span class="muted small">(${t.record.join("-")})</span>` : "";
-      return `<div class="pick"><div class="top"><span class="team">${st ? `<span class="mark ${st}">${sym[st]}</span>` : ""}${esc(t.team)}${rec}</span><span class="small muted num">${pct(t[key])}${meter(sorted.indexOf(t.team), sorted.length)}</span></div>
+      return `<div class="pick"><div class="top"><span class="team">${st ? `<span class="mark ${st}">${sym[st]}</span>` : ""}${teamLabel(t.team)}${rec}</span><span class="small num" title="Chance of this exact finish">${pct(t[key])}</span></div>
         <div class="why">${s.seeds_known ? reason(slot, t, s, rankQ[t.team], r1Of[t.team]) : `${pct(t.p_in_stage)} to even reach this stage.`}</div></div>`;
     }).join("")}</div>`;
   }).join("");
   const p5 = s.p_at_least_5;
   $("#sheet").innerHTML = `<div class="sheet">${cols}</div>
-    <div class="card verdict"><div><div class="muted small">${s.status === "upcoming" ? "Chance of 5+ correct" : "Correct so far"}</div><div class="big num">${s.status === "upcoming" ? pct(p5) : `${hits}/10`}</div></div>
-      <div><div class="ink2">${s.status === "upcoming" ? `That's ${odds(p5)}. Upsets make five correct picks difficult: ${s.stage < 3 ? "single-map matches are close to coin flips" : "even best-of-threes throw up upsets"}. Most of the time you'll land on 3 or 4.` : `Projected finish: ${s.expected_correct.toFixed(1)} correct, with a ${pct(p5)} chance of 5+ correct.`}</div><div id="dist" style="margin-top:8px"></div></div></div>
+    <div class="card verdict"><strong class="big num">${s.status === "upcoming" ? pct(p5) : `${hits}/10`}</strong>
+      <span class="ink2">${s.status === "upcoming" ? "simulated chance of getting five or more right" : `correct so far · ${pct(p5)} chance of finishing with five or more`}</span></div>
     <details class="more" id="builder"><summary>Build your own picks and compare</summary><div>
       <p class="small ink2">Tap a team to cycle it through <b>3-0 → Advance → 0-3 → none</b>. Your set is scored against ${s.outcomes.length.toLocaleString()} simulated stages.</p>
       <div class="chips" id="chips"></div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px"><button class="btn" id="reset">Use our picks</button><button class="btn" id="clear">Clear</button><span class="ink2" id="myScore"></span></div>
-    </div></details>`;
-  distBars($("#dist"), s.score_dist);
+    </div></details>
+    <details class="more" id="pickDist"><summary>See the spread of possible scores</summary><div class="plot" id="dist"></div></details>`;
+  $("#pickDist").ontoggle = () => { if ($("#pickDist")?.open) distBars($("#dist"), s.score_dist); };
   mine = {}; setOurs(s, mine); renderBuilder(s);
   $("#reset").onclick = () => { mine = {}; setOurs(s, mine); renderBuilder(s); };
   $("#clear").onclick = () => { mine = {}; renderBuilder(s); };
@@ -451,18 +492,19 @@ function renderPlayoffs() {
 
 /* ---------------- round 1 ---------------- */
 function renderRound1(s) {
-  ["#round1", "#paths", "#odds"].forEach(id => $(id).style.display = s.seeds_known ? "" : "none");
+  $("#round1").style.display = s.seeds_known ? "" : "none";
+  ["#paths", "#odds"].forEach(id => $(id).style.display = s.seeds_known && s.visits ? "" : "none");
   if (!s.seeds_known) return;
   const fmt = s.stage === 3 ? "best-of-three" : "single map";
   $("#r1Title").textContent = `Stage ${s.stage} · Round 1 at a glance`;
-  $("#r1Intro").innerHTML = `Seed 1 plays seed 9, seed 2 plays seed 10, and so on. Each bar shows the chance of winning this ${fmt}. <b>Coin flip</b> means the match is within 45–55%.`;
+  $("#r1Intro").innerHTML = `Each bar shows the model’s win chances in a ${fmt}. <b>Coin flip</b> means both teams have about a 50% chance.`;
   const key = (a, b) => [a, b].sort().join("|");
   const res = Object.fromEntries((s.matches || []).filter(m => m.round === 1).map(m => [key(m.a, m.b), m.winner]));
   $("#r1").innerHTML = s.round1.map(m => {
     const fav = m.p_a >= .5 ? m.a : m.b, pf = Math.max(m.p_a, 1 - m.p_a), w = res[key(m.a, m.b)];
     const tag = pf < .55 ? `<span class="tag flip">Coin flip</span>` : `<span class="tag fav">${pf < .6 ? "Slight edge" : "Favoured"}: ${esc(fav)}</span>`;
-    return `<div class="mu"><div class="names"><span>${esc(m.a)}</span><span>${esc(m.b)}</span></div>
-      <div class="split"><i style="width:${100 * m.p_a}%;background:${css("--bar")}"></i><i style="width:${100 * (1 - m.p_a)}%;background:${css("--line-2")}"></i></div>
+    return `<div class="mu"><div class="names"><span>${teamLabel(m.a)}</span><span>${teamLabel(m.b)}</span></div>
+      <div class="split" aria-hidden="true"><i style="width:${100 * m.p_a}%;background:${teamColor(m.a)}"></i><i style="width:${100 * (1 - m.p_a)}%;background:${teamColor(m.b)}"></i></div>
       <div class="meta"><span class="num">${pct(m.p_a)}</span>${w ? `<span class="res">✓ ${esc(w)} won</span>` : tag}<span class="num">${pct(1 - m.p_a)}</span></div></div>`;
   }).join("");
 }
@@ -473,14 +515,17 @@ const COLHEAD = ["Start", "Round 1", "Round 2", "Round 3", "Round 4", "Round 5"]
 function renderPaths(s) {
   if (!s.seeds_known || !s.visits) return;
   const cols = s.outcome_cols, V = s.visits, idx = Object.fromEntries(cols.map((t, i) => [t, i]));
-  $("#pathTeams").innerHTML = `<button class="chip ${pathTeam ? "" : "on"}" data-t="">Most likely teams</button>` + cols.map(t => `<button class="chip ${pathTeam === t ? "on" : ""}" data-t="${esc(t)}">${esc(t)}</button>`).join("");
-  document.querySelectorAll("#pathTeams .chip").forEach(c => c.onclick = () => { pathTeam = c.dataset.t || null; renderPaths(s); });
-  const accent = css("--accent");
+  $("#pathTeams").innerHTML = `<button class="chip ${pathTeam ? "" : "on"}" data-t="" aria-pressed="${!pathTeam}">Most likely teams</button>` + cols.map(t => `<button class="chip ${pathTeam === t ? "on" : ""}" data-t="${esc(t)}" aria-pressed="${pathTeam === t}">${teamLabel(t)}</button>`).join("");
+  document.querySelectorAll("#pathTeams .chip").forEach((c, i) => c.onclick = () => {
+    pathTeam = c.dataset.t || null;
+    renderPaths(s);
+    $("#pathTeams").children[i].focus({ preventScroll: true });
+  });
   $("#swiss").innerHTML = COLS.map((col, ci) => `<div class="col"><div class="colhead">${COLHEAD[ci]}</div>${col.map(([w, l]) => {
     const cls = w === 3 ? "adv" : l === 3 ? "out" : "";
     if (pathTeam) {
       const p = V[idx[pathTeam]][w][l];
-      return `<div class="node ${cls}" style="background:color-mix(in srgb, ${accent} ${Math.round(75 * p)}%, var(--paper))"><div class="rec">${w}-${l}</div><div class="hp num">${pct(p)}</div></div>`;
+      return `<div class="node ${cls}" style="background:color-mix(in oklch, ${teamColor(pathTeam)} ${Math.round(30 * p)}%, var(--paper))"><div class="rec">${w}-${l}</div><div class="hp num">${pct(p)}</div></div>`;
     }
     if (w + l === 0) return `<div class="node"><div class="rec">0-0<span>16 teams</span></div></div>`;
     const ranked = cols.map((t, i) => [t, V[i][w][l]]).filter(x => x[1] > 0.005).sort((a, b) => b[1] - a[1]).slice(0, 3);
@@ -488,101 +533,114 @@ function renderPaths(s) {
   }).join("")}</div>`).join("");
 }
 
-/* ---------------- odds table ---------------- */
+/* ---------------- stage finishes ---------------- */
 function renderOdds(s) {
   if (!s.seeds_known || !s.visits) return;
   const cols = s.outcome_cols, V = s.visits;
-  const recs = [[3, 0, "var(--c30)"], [3, 1, "color-mix(in srgb, var(--cadv) 85%, white)"], [3, 2, "color-mix(in srgb, var(--cadv) 55%, white)"], [2, 3, "color-mix(in srgb, var(--c03) 45%, white)"], [1, 3, "color-mix(in srgb, var(--c03) 70%, white)"], [0, 3, "var(--c03)"]];
-  const rows = cols.map((t, i) => ({ t, i, q: V[i][3][0] + V[i][3][1] + V[i][3][2], seed: i + 1 })).sort((a, b) => b.q - a.q);
-  const top = rows[0], bot = rows[rows.length - 1];
-  $("#oddsIntro").innerHTML = `Every team's full spread of finishes. <b>${esc(top.t)}</b> are likeliest to qualify (${pct(top.q)}), <b>${esc(bot.t)}</b> least likely (${pct(bot.q)}). ${rows.filter(r => r.q > .4 && r.q < .65).length} of 16 teams sit between 40% and 65%, which is why this stage is so hard to call.`;
-  $("#oddsTbl").innerHTML = `<tr><th>Team</th><th class="r">Seed</th><th class="r">Qualifies</th><th>Final record spread</th></tr>` + rows.map(r => {
-    const si = D.stand_ins[r.t] ? ` <span class="muted small" title="Playing with a stand-in">(stand-in)</span>` : "";
-    const rec = s.teams.find(x => x.team === r.t);
-    const live = s.status !== "upcoming" && rec && rec.record ? ` <span class="muted small">${rec.record.join("-")}</span>` : "";
-    return `<tr><td><b>${esc(r.t)}</b>${si}${live}</td><td class="r num muted">${r.seed}</td><td class="r num">${pct(r.q)}</td>
-      <td><div class="stack">${recs.map(([w, l, c]) => `<i style="width:${100 * V[r.i][w][l]}%;background:${c}" title="${w}-${l}: ${pct(V[r.i][w][l])}"></i>`).join("")}</div></td></tr>`;
+  const recs = [
+    [3, 0, "oklch(71% .16 158)"], [3, 1, "oklch(81% .13 158)"], [3, 2, "oklch(89% .09 158)"],
+    [2, 3, "oklch(92% .06 36)"], [1, 3, "oklch(83% .11 36)"], [0, 3, "oklch(73% .16 36)"],
+  ];
+  const key = ([w, l, c]) => `<span class="finish-key" style="background:${c}">${w}–${l}</span>`;
+  $("#finishLegend").innerHTML = `<div><strong>Advance</strong>${recs.slice(0, 3).map(key).join("")}</div>
+    <div><strong>Eliminated</strong>${recs.slice(3).map(key).join("")}</div>`;
+  $("#oddsIntro").textContent = "Win three matches to advance. Lose three and you’re out. Open a team’s row to see its odds for every finish.";
+  const rows = s.teams.map(team => ({ ...team, finishes: V[cols.indexOf(team.team)] }))
+    .sort((a, b) => b.p_qualify - a.p_qualify);
+  $("#oddsRows").innerHTML = rows.map(r => {
+    const live = s.status !== "upcoming" && r.record ? ` <span class="muted small">(${r.record.join("–")})</span>` : "";
+    const bar = recs.map(([w, l, color]) => {
+      const p = r.finishes[w][l];
+      return `<span style="--share:${100 * p}%;background:${color}" title="${w}–${l}: ${pct(p)}">${p >= .14 ? `${w}–${l}` : ""}</span>`;
+    }).join("");
+    const breakdown = recs.map(record => {
+      const [w, l] = record;
+      return `<span>${key(record)}<strong class="num">${pct(r.finishes[w][l], 1)}</strong></span>`;
+    }).join("");
+    return `<details class="finish-row"><summary><span class="finish-name">${teamLabel(r.team)}${live}</span>
+      <span class="stack" aria-hidden="true">${bar}</span>
+      <span class="finish-rate"><strong class="num">${pct(r.p_qualify)}</strong> advance</span></summary>
+      <div class="finish-breakdown">${breakdown}</div></details>`;
   }).join("");
 }
 
 /* ---------------- trophy survival ---------------- */
 function renderTrophy() {
-  const f = D.major, steps = [["start", "Start"], ["stage2", "Stage 2"], ["stage3", "Stage 3"], ["playoffs", "Playoffs"], ["semis", "Semis"], ["final", "Final"], ["champion", "Champion"]];
+  if (!$("#trophy").open) return;
+  const steps = [["start", "Start"], ["stage2", "Stage 2"], ["stage3", "Stage 3"], ["playoffs", "Playoffs"], ["semis", "Semis"], ["final", "Final"], ["champion", "Win"]];
   const val = (r, k) => k === "start" ? 1 : k === "stage2" ? (r.entry === "Stage 1" ? r.stage2 : 1) : k === "stage3" ? (r.entry === "Stage 3" ? 1 : r.stage3) : r[k];
-  const s3 = f.filter(r => r.entry === "Stage 3").reduce((a, r) => a + r.champion, 0);
-  $("#trophyIntro").innerHTML = `Each line follows one team through the event. The eight teams invited straight to Stage 3 win <b>${pct(s3)}</b> of the simulated Majors between them, because skipping two Swiss stages means fewer chances to slip. <b>Tap teams</b> to compare.`;
-  const pool = f.slice(0, 16);
-  $("#survTeams").innerHTML = pool.map(r => `<button class="chip ${survSel.has(r.team) ? "on" : ""}" data-t="${esc(r.team)}">${esc(r.team)}</button>`).join("");
-  document.querySelectorAll("#survTeams .chip").forEach(c => c.onclick = () => { const t = c.dataset.t; survSel.has(t) ? survSel.delete(t) : survSel.add(t); renderTrophy(); });
-  const el = $("#surv"), W = Math.max(el.clientWidth, 300), narrow = W < 520, H = 300, L = 36, R = 18, T = 12, B = 28;
+  const pool = D.major.slice(0, 16);
+  const controls = $("#survTeams");
+  if (!controls.children.length) {
+    controls.innerHTML = pool.map(r => `<button class="chip" data-t="${esc(r.team)}">${teamLabel(r.team)}</button>`).join("");
+    Array.from(controls.children).forEach(c => c.onclick = () => {
+      const t = c.dataset.t;
+      if (survSel.has(t)) survSel.delete(t); else survSel.add(t);
+      renderTrophy();
+    });
+  }
+  Array.from(controls.children).forEach(c => {
+    const on = survSel.has(c.dataset.t);
+    c.classList.toggle("on", on);
+    c.setAttribute("aria-pressed", on);
+  });
+  const el = $("#surv"), W = el.clientWidth, narrow = W < 520, H = narrow ? 205 : 255;
+  const L = 36, R = 25, T = 12, B = 27;
   const X = i => L + (W - L - R) * i / (steps.length - 1), Y = v => T + (H - T - B) * (1 - v);
-  const palette = [css("--accent"), css("--cadv"), css("--c30"), "#ae3ec9", "#f59f00", "#0ca678", "#e64980", "#5c7cfa"];
   const sel = pool.filter(r => survSel.has(r.team));
-  const grid = [0, .25, .5, .75, 1].map(v => `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="${css("--line")}"/><text x="${L - 6}" y="${Y(v) + 4}" text-anchor="end">${pct(v)}</text>`).join("");
-  const xl = steps.map(([, l], i) => `<text x="${X(i)}" y="${H - 8}" text-anchor="middle" font-size="${narrow ? 10 : 12}">${narrow ? l.replace("Stage ", "S").replace("Champion", "Win").replace("Playoffs", "PO") : l}</text>`).join("");
-  const ghost = pool.filter(r => !survSel.has(r.team)).map(r => `<polyline fill="none" stroke="${css("--line-2")}" stroke-width="1" points="${steps.map(([k], i) => `${X(i)},${Y(val(r, k))}`).join(" ")}"/>`).join("");
-  const lines = sel.map((r, j) => { const c = palette[j % palette.length], pts = steps.map(([k], i) => [X(i), Y(val(r, k))]);
-    return `<polyline fill="none" stroke="${c}" stroke-width="2.5" points="${pts.map(p => p.join(",")).join(" ")}"/>${pts.map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="3.5" fill="${c}"><title>${esc(r.team)} · ${steps[i][1]}: ${pct(val(r, steps[i][0]))}</title></circle>`).join("")}
-`; }).join("");
-  const key = `<div class="legend">${sel.map((r, j) => `<span><i style="background:${palette[j % palette.length]}"></i>${esc(r.team)} · ${pct(r.champion)} to win</span>`).join("")}</div>`;
-  el.innerHTML = `<svg width="${W}" height="${H}" role="img" aria-label="Chance of reaching each stage">${grid}${xl}${ghost}${lines}</svg>${key}`;
+  if (!sel.length) { el.innerHTML = '<p class="details-copy">Choose a team to show its route.</p>'; return; }
+  const grid = [0, .25, .5, .75, 1].map(v => `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${L - 6}" y="${Y(v) + 4}" text-anchor="end">${pct(v)}</text>`).join("");
+  const labels = steps.map(([, l], i) => {
+    const label = narrow ? l.replace("Stage ", "S").replace("Playoffs", "PO") : l;
+    return `<text x="${X(i)}" y="${H - 8}" text-anchor="middle">${label}</text>`;
+  }).join("");
+  const lines = sel.map(r => {
+    const c = teamColor(r.team);
+    const pts = steps.map(([k], i) => [X(i), Y(val(r, k))]);
+    return `<polyline fill="none" stroke="${c}" stroke-width="2.5" points="${pts.map(p => p.join(",")).join(" ")}"/>${pts.map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="3.5" fill="${c}"><title>${esc(r.team)} · ${steps[i][1]}: ${pct(val(r, steps[i][0]))}</title></circle>`).join("")}`;
+  }).join("");
+  const summary = sel.map(r => `<span>${teamLabel(r.team)} · ${pct(r.champion)} to win</span>`).join("");
+  el.innerHTML = `<svg width="${W}" height="${H}" role="img" aria-label="Chance of reaching each stage">${grid}${labels}${lines}</svg><div class="legend">${summary}</div>`;
 }
 
 /* ---------------- head-to-head ---------------- */
 function bo1(p) { let lo = 0, hi = 1; for (let i = 0; i < 40; i++) { const m = (lo + hi) / 2; if (m * m * (3 - 2 * m) < p) lo = m; else hi = m; } return (lo + hi) / 2; }
 function initH2H() {
+  if (!D.matchups?.teams?.length) { $("#h2h").hidden = true; return; }
   const opts = D.power.map(t => `<option>${esc(t.team)}</option>`).join("");
-  $("#ta").innerHTML = opts; $("#tb").innerHTML = opts; $("#ta").value = D.power[0].team; $("#tb").value = D.power[1].team;
-  $("#ta").onchange = $("#tb").onchange = () => { updateH2H(); renderHeat(); }; updateH2H(); renderHeat();
+  $("#ta").innerHTML = opts; $("#tb").innerHTML = opts;
+  $("#ta").value = D.power[0].team; $("#tb").value = D.power[1].team;
+  $("#ta").onchange = $("#tb").onchange = updateH2H;
+  updateH2H();
 }
 function updateH2H() {
   const T = D.matchups.teams, a = T.indexOf($("#ta").value), b = T.indexOf($("#tb").value);
-  if (a === b) { $("#pa").textContent = $("#pb").textContent = "–"; $("#vsText").textContent = "Pick two different teams."; return; }
-  const p = D.matchups.p[a][b], q = bo1(p);
-  $("#pa").textContent = pct(p); $("#pb").textContent = pct(1 - p);
-  const fav = p >= .5 ? T[a] : T[b], pf = Math.max(p, 1 - p), qf = Math.max(q, 1 - q);
-  $("#vsText").innerHTML = pf < .55 ? `Basically a coin flip in a best-of-three.` : `<b>${esc(fav)}</b> win ${odds(pf)} best-of-threes, but on a single map that drops to ${pct(qf)}.`;
-}
-function renderHeat() {
-  const T = D.matchups.teams, top = D.power.slice(0, 16).map(t => t.team), ix = top.map(t => T.indexOf(t));
-  const el = $("#heat"), L = 104, cell = Math.max(Math.min(((el.clientWidth || 400) - L) / 16, 30), 20), W = L + cell * 16, H = 72 + cell * 16;
-  const A = $("#ta").value, B = $("#tb").value;
-  const color = p => p >= .5 ? `color-mix(in srgb, ${css("--cadv")} ${Math.round(160 * (p - .5))}%, ${css("--paper")})` : `color-mix(in srgb, ${css("--c03")} ${Math.round(160 * (.5 - p))}%, ${css("--paper")})`;
-  let out = `<svg width="${W}" height="${H}" role="img" aria-label="Head-to-head grid">`;
-  top.forEach((t, j) => { const x = L + j * cell + cell / 2; out += `<text x="${x}" y="66" transform="rotate(-55 ${x} 66)" font-size="11" ${t === B ? 'class="lbl"' : ""}>${esc(t)}</text>`; });
-  top.forEach((r, i) => {
-    out += `<text x="${L - 6}" y="${72 + i * cell + cell / 2 + 4}" text-anchor="end" font-size="11" ${r === A ? 'class="lbl"' : ""}>${esc(r)}</text>`;
-    top.forEach((c, j) => { const p = D.matchups.p[ix[i]][ix[j]], on = r === A && c === B;
-      out += `<rect data-a="${esc(r)}" data-b="${esc(c)}" x="${L + j * cell}" y="${72 + i * cell}" width="${cell - 1}" height="${cell - 1}" rx="2" fill="${i === j ? css("--sunk") : color(p)}" stroke="${on ? css("--ink") : "none"}" stroke-width="2" style="cursor:pointer"><title>${esc(r)} vs ${esc(c)}: ${pct(p)}</title></rect>`; });
-  });
-  el.innerHTML = out + "</svg>";
-  el.querySelectorAll("rect[data-a]").forEach(r => r.onclick = () => { if (r.dataset.a === r.dataset.b) return; $("#ta").value = r.dataset.a; $("#tb").value = r.dataset.b; updateH2H(); renderHeat(); });
+  const el = $("#duels");
+  if (a === b) { el.innerHTML = '<p class="details-copy">Choose two different teams.</p>'; return; }
+  const p = D.matchups.p[a][b];
+  el.innerHTML = [["Single map", bo1(p)], ["Best-of-three", p]].map(([format, chance]) =>
+    `<div class="duel"><strong>${format}</strong><div><div class="duel-values"><span>${teamLabel(T[a])} ${pct(chance)}</span><span>${teamLabel(T[b])} ${pct(1 - chance)}</span></div>
+      <div class="duel-bar" aria-hidden="true"><i style="width:${100 * chance}%;background:${teamColor(T[a])}"></i><i style="width:${100 * (1 - chance)}%;background:${teamColor(T[b])}"></i></div></div></div>`
+  ).join("");
 }
 
 /* ---------------- trust ---------------- */
 function renderTrust() {
-  const R = D.replay, z = D.zoo;
+  const R = D.replay;
   if (R) {
     const e = R.summary["Ensemble (optimised)"], sb = R.summary["Seed baseline"];
     const formatNote = R.stages.every(s => s.format) ? "" : " This older replay used the wrong match format for Cologne Stage 3.";
-    $("#trustIntro").innerHTML = `Across ${e.stages} historical stages, the model averaged <b>${e.mean_correct.toFixed(1)}</b> correct picks versus <b>${sb.mean_correct.toFixed(1)}</b> for the seed picks, and hit five correct <b>${e.coins}</b> times versus <b>${sb.coins}</b>. The sample spans four Majors. Some stages predate the model tuning cutoff.${formatNote} This comparison is exploratory.`;
-    const el = $("#replay"), st = R.stages, W = Math.max(el.clientWidth, 300), rh = 28, L = Math.min(170, W * .5), H = st.length * rh + 30;
+    $("#trustIntro").innerHTML = `The model reached five correct picks in <b>${e.coins} of ${e.stages} stages</b>. Seed picks did it ${sb.coins} times. The sample is small and some stages predate model tuning.${formatNote} We haven’t established an advantage.`;
+    const el = $("#replay"), st = R.stages, W = el.clientWidth, rh = 25, L = Math.min(170, W * .52), H = st.length * rh + 30;
     const X = v => L + (W - L - 16) * v / 10;
     let out = `<svg width="${W}" height="${H}" role="img" aria-label="Correct picks per past stage"><line x1="${X(5)}" x2="${X(5)}" y1="0" y2="${H - 24}" stroke="${css("--accent")}" stroke-dasharray="4 4"/>`;
     [0, 2, 4, 6, 8, 10].forEach(v => { out += `<text x="${X(v)}" y="${H - 6}" text-anchor="middle">${v}</text>`; });
     st.forEach((s, i) => { const y = i * rh + 14, a = s["Ensemble (optimised)"], b = s["Seed baseline"];
-      const label = `${s.event.replace(/ Major/, "").replace(/^(PGL|Perfect World|BLAST\.tv|StarLadder|IEM) /, "").replace(/ 20(\d\d)$/, " '$1")} · ${s.stage.replace(" Stage", "").replace("Elimination", "Elim").replace("Stage ", "S")}`;
-      out += `<text x="${L - 8}" y="${y + 4}" text-anchor="end" font-size="${W < 420 ? 11 : 12}">${esc(label)}</text><line x1="${X(Math.min(a, b))}" x2="${X(Math.max(a, b))}" y1="${y}" y2="${y}" stroke="${css("--line-2")}" stroke-width="2"/>
-        <circle cx="${X(b)}" cy="${y}" r="5" fill="${css("--mute")}"><title>Seeds: ${b}</title></circle><circle cx="${X(a)}" cy="${y}" r="5" fill="${css("--accent")}"><title>Ours: ${a}</title></circle>`; });
+      const label = `${s.event.replace(/ Major/, "").replace(/^(PGL|Perfect World|BLAST\.tv|StarLadder|IEM) /, "").replace(/ 20(\d\d)$/, " '$1")} · ${s.stage.replace(" Stage", "").replace("Opening", "Open").replace("Elimination", "Elim").replace("Stage ", "S")}`;
+      out += `<text class="stage-label" x="${L - 8}" y="${y + 4}" text-anchor="end">${esc(label)}</text><line x1="${X(Math.min(a, b))}" x2="${X(Math.max(a, b))}" y1="${y}" y2="${y}" stroke="${css("--line-2")}" stroke-width="2"/>
+        <circle cx="${X(b)}" cy="${y}" r="${a === b ? 6 : 5}" fill="${css("--mute")}"><title>Seeds: ${b}</title></circle><circle cx="${X(a)}" cy="${y}" r="${a === b ? 3 : 5}" fill="${css("--accent")}"><title>${a === b ? "Both cards" : "Model"}: ${a}</title></circle>`; });
     el.innerHTML = out + `</svg>`;
   }
-  const items = [];
-  if (z) { const vrs = z.results.find(r => r.model === "VRS points"), best = z.results.find(r => r.model.startsWith("Ensemble 4")) || z.results[0];
-    const chronology = z.chronology === "prior_days" ? "" : " Same-day match ordering is still being checked.";
-    items.push(`<b>Calling single matches:</b> on ${z.eval_n} historical matches between top-rated teams, the model picked the winner <b>${pct(best.acc)}</b> of the time, against ${pct(vrs.acc)} for a baseline built from Valve rankings.${chronology}`); }
-  items.push(`<b>Why so modest?</b> CS2 is high-variance. No model can see a star's bad day or a surprise strat. Treat every number here as a likelihood, not a promise.`);
-  if (D.maps) items.push(`<b>Map pools didn't help.</b> We tested each team's strength on every map plus a full ban/pick simulation. It showed no measurable improvement in that test.`);
-  $("#trustFacts").innerHTML = items.map(x => `<li>${x}</li>`).join("");
 }
 
 /* ---------------- method ---------------- */
