@@ -355,7 +355,7 @@ def export(m: pd.DataFrame, P: pd.DataFrame, stages: list, playoffs: dict, reach
         "major": [{"team": t, "entry": entry[t], **{k: round(float(v), 4) for k, v in r.items()}}
                   for t, r in reach.iterrows()],
         "power": [{"team": t, "power": round(float(v), 4), "entry": entry[t]} for t, v in power_rating(P).items()],
-        "matchups": {"teams": list(P.index), "p": P.round(3).values.tolist()},
+        "matchups": {"teams": list(P.index), "p": P.values.tolist()},
         "zoo": load(PROC / "zoo.json"),
         "replay": load(PROC / "replay.json"),
         "maps": load(PROC / "map_backtest.json"),

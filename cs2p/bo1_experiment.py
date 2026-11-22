@@ -1,15 +1,17 @@
-"""Compare Bo1 probability conversions on the same historical fixtures."""
+"""Compare Bo1 conversions on historical fixtures and score the frozen Singapore forecast."""
 
 import argparse
 import json
 from datetime import datetime
 from hashlib import sha256
+from math import log
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 from scipy.optimize import minimize_scalar
 
+from cs2p import teams
 from cs2p.elo import PROC, load_matches
 from cs2p.replay import MIN_HISTORY_MONTHS, swiss_format
 from cs2p.run import OUT, PICK_CUTOFFS, logit, matchup_matrix
@@ -19,6 +21,8 @@ from cs2p.zoo import metrics, sig
 DEVELOPMENT_FROM = pd.Timestamp("2026-06-01")
 HOLDOUT_FROM = pd.Timestamp("2026-06-22")
 THROUGH = pd.Timestamp("2026-11-22")
+ROUND1_VARIANTS = ("converted", "raw", "calibrated")
+LOGLOSS_FLOOR = 1e-6
 
 
 def fixture_predictions(
@@ -140,6 +144,95 @@ def singapore_openers(card_path: Path, slope: float) -> dict:
     }
 
 
+def fixture_key(match: object) -> frozenset[str]:
+    """Match fixtures independent of which team is listed first."""
+    if not isinstance(match, dict):
+        raise ValueError("A fixture must be an object.")
+    a, b = match.get("a"), match.get("b")
+    if not isinstance(a, str) or not isinstance(b, str) or not a or not b or a == b:
+        raise ValueError("A fixture must name two different teams.")
+    return frozenset((a, b))
+
+
+def score_singapore_round1(forecast_path: Path, results_path: Path) -> dict:
+    """Score the frozen forecast only when all eight expected winners are present."""
+    forecast_bytes = forecast_path.read_bytes()
+    forecast = json.loads(forecast_bytes)
+    frozen_at = datetime.fromisoformat(forecast["frozen_at"])
+    cutoff = PICK_CUTOFFS[1]
+    if frozen_at.tzinfo is None or frozen_at >= cutoff:
+        raise ValueError("The forecast must be frozen before the Singapore Stage 1 cutoff.")
+    if datetime.fromisoformat(forecast["cutoff"]) != cutoff:
+        raise ValueError("The forecast cutoff does not match Singapore Stage 1.")
+
+    field = [name for name, _ in teams.STAGE1]
+    expected = {frozenset((a, b)) for a, b in zip(field[:8], field[8:])}
+    fixtures = {}
+    for match in forecast["matches"]:
+        key = fixture_key(match)
+        if key not in expected or key in fixtures:
+            raise ValueError("The frozen forecast contains a duplicate or unexpected fixture.")
+        probabilities = match["p_a"]
+        if (
+            not isinstance(probabilities, dict)
+            or set(probabilities) != set(ROUND1_VARIANTS)
+            or any(
+                type(p) not in (int, float) or not 0 <= p <= 1 for p in probabilities.values()
+            )
+        ):
+            raise ValueError("Each fixture needs three finite probabilities between zero and one.")
+        fixtures[key] = match
+    if fixtures.keys() != expected:
+        raise ValueError("The frozen forecast must cover all eight Singapore Round 1 fixtures.")
+
+    results_bytes = results_path.read_bytes()
+    results = json.loads(results_bytes)
+    stages = [
+        stage for stage in results["stages"] if isinstance(stage, dict) and stage.get("stage") == 1
+    ]
+    if len(stages) != 1:
+        raise ValueError("The report must contain exactly one Stage 1 results block.")
+    winners = {}
+    for match in stages[0]["matches"]:
+        if not isinstance(match, dict):
+            raise ValueError("A Stage 1 result must be an object.")
+        round_number = match.get("round")
+        if type(round_number) is not int or not 1 <= round_number <= 5:
+            raise ValueError("A Stage 1 result has an invalid round number.")
+        if round_number != 1:
+            continue
+        key = fixture_key(match)
+        if key not in fixtures or key in winners:
+            raise ValueError("Round 1 results contain a duplicate or unexpected fixture.")
+        winner = match.get("winner")
+        if not isinstance(winner, str) or winner not in key:
+            raise ValueError("A Round 1 winner is not one of the fixture's teams.")
+        winners[key] = winner
+
+    scored = len(winners) == len(fixtures)
+    report = {
+        "status": "scored" if scored else "pending",
+        "matches_expected": len(fixtures),
+        "matches_completed": len(winners),
+        "forecast_sha256": sha256(forecast_bytes).hexdigest(),
+        "forecast_lf_sha256": sha256(forecast_bytes.replace(b"\r\n", b"\n")).hexdigest(),
+        "results_sha256": sha256(results_bytes).hexdigest(),
+    }
+    if scored:
+        report["logloss_floor"] = LOGLOSS_FLOOR
+        report["scores"] = {}
+        for model in ROUND1_VARIANTS:
+            p_win = [
+                m["p_a"][model] if winners[key] == m["a"] else 1 - m["p_a"][model]
+                for key, m in fixtures.items()
+            ]
+            report["scores"][model] = {
+                "logloss": -sum(log(max(p, LOGLOSS_FLOOR)) for p in p_win) / len(p_win),
+                "brier": sum((1 - p) ** 2 for p in p_win) / len(p_win),
+            }
+    return report
+
+
 def main(card_path: Path) -> None:
     """Write reproducible evaluation results to stdout."""
     history = load_matches()
@@ -178,4 +271,14 @@ def main(card_path: Path) -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--card", type=Path, default=OUT / "picks_stage1.json")
-    main(parser.parse_args().card)
+    parser.add_argument("--score-round1", type=Path, metavar="REPORT")
+    parser.add_argument("--forecast", type=Path, default=OUT / "bo1_singapore_stage1.json")
+    args = parser.parse_args()
+    if args.score_round1:
+        try:
+            report = score_singapore_round1(args.forecast, args.score_round1)
+        except (OSError, ValueError, TypeError, KeyError) as exc:
+            parser.error(str(exc))
+        print(json.dumps(report, indent=2))
+    else:
+        main(args.card)

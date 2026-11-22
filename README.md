@@ -92,3 +92,6 @@ and [the Bo1 experiment](cs2p/bo1_experiment.py). Run `python -m cs2p.bo1_experi
 and parameters are built to compare the current Bo1 conversion with raw and calibrated odds.
 Use `--card PATH` to reproduce challenger forecasts from an archived Swiss card. The [frozen
 Singapore Round 1 forecasts](outputs/bo1_singapore_stage1.json) are ready to score after play.
+After refreshing the report, run
+`python -m cs2p.bo1_experiment --score-round1 web/data.json`. It reports progress until all eight
+opening results are present, then scores each frozen variant with log-loss and Brier score.
