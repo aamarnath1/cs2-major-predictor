@@ -1,6 +1,6 @@
 """Singapore Major 2026 participants, seeds and Liquipedia -> VRS name mapping.
 
-Seeds are listed in Valve Global Standings order (seed 1 first), as published on
+Seeds use the event's Nov 2 Valve Global Standings order (seed 1 first), as published on
 Liquipedia (PGL/2026/Singapore). Stand-ins come from the Liquipedia roster notes.
 """
 

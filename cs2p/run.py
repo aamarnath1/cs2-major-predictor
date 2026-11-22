@@ -6,7 +6,10 @@ so the ensemble is used for robustness.
 """
 
 import json
+from datetime import UTC, datetime
+from hashlib import sha256
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 
 import numpy as np
 import pandas as pd
@@ -17,7 +20,7 @@ from cs2p.elo import PROC, load_matches, win_prob
 from cs2p.features import build_features, ts_win_prob, TS
 from cs2p.live import fetch_state, fixed_rounds, major_matches, simulate_major
 from cs2p.pickem import NEED, optimise, score
-from cs2p.playoffs import all_brackets
+from cs2p.playoffs import all_brackets, optimise_bracket, playoff_challenge
 from cs2p.swiss import ADV, ADV_30, ELIM_03, bo1_from_bo3, simulate
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -27,6 +30,44 @@ AS_OF = max(pd.Timestamp("2026-11-24"), pd.Timestamp.now().normalize() + pd.Time
 LABELS = {ADV_30: "3-0", ADV: "3-1/3-2", ELIM_03: "0-3"}
 ALL_TEAMS = teams.STAGE1 + teams.STAGE2_INVITES + teams.STAGE3_INVITES
 RATERS = ("Elo", "Glicko-2", "TrueSkill", "Bradley-Terry")
+# Scheduled opening matches on PGL's event page, converted from Singapore time.
+PICK_CUTOFFS = {
+    1: datetime(2026, 11, 24, 4, tzinfo=UTC),
+    2: datetime(2026, 11, 28, 4, tzinfo=UTC),
+    3: datetime(2026, 12, 2, 4, tzinfo=UTC),
+    "playoffs": datetime(2026, 12, 10, 9, tzinfo=UTC),
+}
+
+
+def saved_card(path: Path, cutoff: datetime) -> dict | list | None:
+    """Load a recorded card with a verified pre-cutoff timestamp."""
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        timestamp = datetime.fromisoformat(data["frozen_at"])
+        picks = data["picks"]
+    except (FileNotFoundError, KeyError, TypeError, ValueError):
+        return None
+    return picks if timestamp.tzinfo is not None and timestamp < cutoff else None
+
+
+def save_card(path: Path, cutoff: datetime, picks: dict | list, **evidence: object) -> bool:
+    """Replace the card atomically, only while the forecast window is open."""
+    now = datetime.now(UTC)
+    if now >= cutoff:
+        return False
+    payload = {"picks": picks, "frozen_at": now.isoformat(), **evidence}
+    with NamedTemporaryFile(mode="w", encoding="utf-8", dir=path.parent, delete=False) as temp:
+        candidate = Path(temp.name)
+        try:
+            json.dump(payload, temp, indent=2)
+            temp.close()
+            if datetime.now(UTC) >= cutoff:
+                return False
+            candidate.replace(path)
+            return True
+        finally:
+            temp.close()
+            candidate.unlink(missing_ok=True)
 
 
 def logit(p: np.ndarray) -> np.ndarray:
@@ -94,7 +135,8 @@ def pick_status(slot: str, w: int, l: int) -> str:
     return "miss" if l == 3 else "open"
 
 
-def stage_block(s: int, st: dict, P: pd.DataFrame, per_rater: dict, major: dict, n_stage: int) -> dict:
+def stage_block(s: int, st: dict, P: pd.DataFrame, per_rater: dict, major: dict, n_stage: int,
+                provenance: dict | None = None) -> dict:
     """Odds, picks and (once started) live pick scoring for one Swiss stage."""
     seeds_known = st["seeds"] is not None
     fr: list = []
@@ -116,18 +158,35 @@ def stage_block(s: int, st: dict, P: pd.DataFrame, per_rater: dict, major: dict,
         in_stage = (outcomes >= 0).mean(0)
 
     picks_path = OUT / f"picks_stage{s}.json"
-    if st["status"] == "upcoming" or not picks_path.exists():
+    cutoff = PICK_CUTOFFS[s]
+    locked = st["status"] != "upcoming" or bool(st["matches"]) or datetime.now(UTC) >= cutoff
+    pick_names = saved_card(picks_path, cutoff) if locked and seeds_known else None
+    if not locked:
         picks, _ = optimise(outcomes)
         pick_names = {LABELS[c]: [cols[t] for t in ts] for c, ts in picks.items()}
-        if seeds_known and st["status"] == "upcoming":
-            picks_path.write_text(json.dumps({"picks": pick_names, "frozen_at": str(pd.Timestamp.now())}, indent=2))
-    else:  # stage has started: keep the picks we committed to
-        pick_names = json.loads(picks_path.read_text())["picks"]
+        if seeds_known:
+            baselines = {ADV_30: [0, 1], ADV: list(range(2, 8)), ELIM_03: [14, 15]}
+            evidence = {
+                "field": cols, "p_bo3": Ps.tolist(), "round1": round1, "provenance": provenance,
+                "seed_picks": {LABELS[c]: [cols[t] for t in ts] for c, ts in baselines.items()},
+            }
+            if "Elo" in per_rater:
+                elo_p = per_rater["Elo"].loc[cols, cols].values
+                elo_outcomes = simulate(elo_p, n_sims=n_stage, seed=s, all_bo3=(s == 3))
+                elo_picks, _ = optimise(elo_outcomes)
+                evidence["elo_p_bo3"] = elo_p.tolist()
+                evidence["elo_picks"] = {LABELS[c]: [cols[t] for t in ts] for c, ts in elo_picks.items()}
+            if not save_card(picks_path, cutoff, pick_names, **evidence):
+                locked = True
+                pick_names = saved_card(picks_path, cutoff)
     idx = {t: i for i, t in enumerate(cols)}
     code_of = {v: k for k, v in LABELS.items()}
-    picks = {code_of[k]: [idx[t] for t in v if t in idx] for k, v in pick_names.items()}
-    sc = score(outcomes, picks)
-    dist = np.bincount(sc, minlength=11)[:11] / len(sc)
+    if pick_names is not None and not valid_swiss_card(pick_names, idx):
+        pick_names = None
+    sc = None if pick_names is None else score(outcomes, {
+        code_of[k]: [idx[t] for t in v] for k, v in pick_names.items()
+    })
+    dist = np.bincount(sc, minlength=11)[:11] / len(sc) if sc is not None else None
 
     rec = actual_records(st["seeds"], st["matches"]) if seeds_known else {}
     rows = []
@@ -147,48 +206,72 @@ def stage_block(s: int, st: dict, P: pd.DataFrame, per_rater: dict, major: dict,
                 row[f"q_{r}"] = float(((o[:, i] == ADV_30) | (o[:, i] == ADV)).mean())
 
     status = {}
-    if rec:
+    if rec and pick_names is not None:
         status = {slot: {t: pick_status(slot, *rec[t]) for t in ts} for slot, ts in pick_names.items()}
     return {
         "stage": s, "status": st["status"], "seeds_known": seeds_known, "start_date": st["start_date"],
         "bo": "All matches Bo3" if s == 3 else "Bo1, with Bo3 for advancement and elimination matches",
         "teams": sorted(rows, key=lambda r: -r["p_qualify"]),
-        "picks": pick_names, "p_at_least_5": float((sc >= NEED).mean()), "expected_correct": float(sc.mean()),
-        "score_dist": dist.tolist(), "pick_status": status, "matches": st["matches"],
+        "picks": pick_names, "pick_locked": locked, "pick_cutoff": cutoff.isoformat(),
+        "p_at_least_5": float((sc >= NEED).mean()) if sc is not None else None,
+        "expected_correct": float(sc.mean()) if sc is not None else None,
+        "score_dist": dist.tolist() if dist is not None else None, "pick_status": status,
+        "matches": st["matches"],
         "round1": round1, "visits": visits.round(4).tolist() if visits is not None else None,
         "outcome_cols": cols, "outcomes": outcomes[:3000].tolist(),
     }
+
+
+def valid_swiss_card(picks: object, field: dict[str, int]) -> bool:
+    """Check slot counts, eligibility and the no-repeat constraint."""
+    slots = {"3-0": 2, "3-1/3-2": 6, "0-3": 2}
+    if not isinstance(picks, dict) or picks.keys() != slots.keys():
+        return False
+    if any(not isinstance(picks[k], list) or len(picks[k]) != n for k, n in slots.items()):
+        return False
+    teams = [team for group in picks.values() for team in group]
+    return all(isinstance(t, str) and t in field for t in teams) and len(set(teams)) == 10
 
 
 def playoff_block(major: dict, po: dict) -> dict:
     """Bracket picks (frozen once the playoffs start) and live ✓/✗ against real results."""
     names, seeds, winners = major["names"], major["playoff_seeds"], major["winners"]
     fixed = bool((seeds == seeds[0]).all())
-    out = {"seeds_known": fixed, "status": po["status"], "slots": po["slots"]}
+    cutoff = PICK_CUTOFFS["playoffs"]
+    locked = (po["status"] != "upcoming" or any(slot.get("winner") for slot in po["slots"].values())
+              or datetime.now(UTC) >= cutoff)
+    out = {"seeds_known": fixed, "status": po["status"], "slots": po["slots"], "pick_locked": locked,
+           "pick_cutoff": cutoff.isoformat()}
     if not fixed:
         return out
     sd = seeds[0]
     path = OUT / "picks_playoffs.json"
-    if po["status"] == "upcoming" or not path.exists():
-        best, best_exp = None, -1.0
-        for b in all_brackets():
-            c = (winners == sd[np.array(b)]).mean(0).sum()
-            if c > best_exp:
-                best, best_exp = b, c
+    if not locked:
+        local_index = np.full(len(names), -1)
+        local_index[sd] = np.arange(len(sd))
+        local_winners = local_index[winners]
+        best, _ = optimise_bracket(local_winners)
         picks = [names[sd[j]] for j in best]
-        if po["status"] == "upcoming":
-            path.write_text(json.dumps({"picks": picks, "frozen_at": str(pd.Timestamp.now())}, indent=2))
+        if not save_card(path, cutoff, picks):
+            locked = True
+            picks = saved_card(path, cutoff)
     else:
-        picks = json.loads(path.read_text())["picks"]
+        picks = saved_card(path, cutoff)
     col = {t: i for i, t in enumerate(names)}
-    c = (winners == np.array([col[t] for t in picks])).sum(1)
+    out.update(seeds=[names[i] for i in sd], picks=None, pick_locked=locked)
+    if not isinstance(picks, list) or not any(
+        picks == [names[sd[j]] for j in bracket] for bracket in all_brackets()
+    ):
+        return out
+    correct = winners == np.array([col[t] for t in picks])
+    c = correct.sum(1)
     order = ["R1M1", "R1M2", "R1M3", "R1M4", "R2M1", "R2M2", "R3M1"]
     lost = {v["b"] if v["winner"] == v["a"] else v["a"] for v in po["slots"].values() if v["winner"]}
     status = []
     for slot, t in zip(order, picks):
         w = po["slots"].get(slot, {}).get("winner")
         status.append("hit" if w == t else "miss" if (w or t in lost) else "open")
-    out.update(seeds=[names[i] for i in sd], picks=picks, pick_status=status,
+    out.update(picks=picks, pick_status=status, p_playoff_challenges=float(playoff_challenge(correct).mean()),
                expected_correct=float(c.mean()), score_dist=(np.bincount(c, minlength=8) / len(c)).tolist())
     return out
 
@@ -223,7 +306,20 @@ def main(n_stage: int = 20_000, n_major: int = 5_000) -> None:
     P, per_rater = matchup_matrix(m)
     major = simulate_major(P, state, n_major)
 
-    stages = [stage_block(s, state[s], P, per_rater, major, n_stage) for s in (1, 2, 3)]
+    provenance = {
+        "data_through": m.date.max().isoformat(),
+        "n_matches": len(m),
+        "history_sha256": sha256(m.to_csv(index=False).encode("utf-8")).hexdigest(),
+        "source_sha256": {
+            path.name: sha256(path.read_bytes()).hexdigest()
+            for path in sorted(Path(__file__).parent.glob("*.py"))
+        },
+        "rating_parameter_sha256": {
+            filename: sha256((PROC / filename).read_bytes()).hexdigest()
+            for filename in ("elo_params.json", "bt_params.json")
+        },
+    }
+    stages = [stage_block(s, state[s], P, per_rater, major, n_stage, provenance) for s in (1, 2, 3)]
     playoffs = playoff_block(major, state["playoffs"])
     reach = reach_table(major)
     reach.to_csv(OUT / "major_odds.csv", index_label="team")
@@ -231,8 +327,9 @@ def main(n_stage: int = 20_000, n_major: int = 5_000) -> None:
     export(m, P, stages, playoffs, reach)
 
     for b in stages:
-        print(f"Stage {b['stage']} [{b['status']}, seeds {'known' if b['seeds_known'] else 'projected'}] "
-              f"P(>=5)={b['p_at_least_5']:.3f} exp={b['expected_correct']:.2f} picks={b['picks']}")
+        summary = (f"P(>=5)={b['p_at_least_5']:.3f} exp={b['expected_correct']:.2f} picks={b['picks']}"
+                   if b["picks"] is not None else "No pre-cutoff card to score")
+        print(f"Stage {b['stage']} [{b['status']}, seeds {'known' if b['seeds_known'] else 'projected'}] {summary}")
     print(reach.head(8).round(3).to_string())
 
 
