@@ -1,0 +1,38 @@
+// Logos use PGL's Singapore event artwork, including its alternate team marks.
+// https://www.pglesports.com/cs2/pgl-major-singapore-2026/
+// White PGL marks can still have a brand accent. See M80 (m80.gg), FUT
+// (futesports.gg), NAVI (navi.gg) and Nemiga (nemiga.gg).
+const TEAM_BRANDING = {
+  "100 Thieves": { asset: "100_thieves", color: "#df3533", plate: "light" },
+  "9z": { asset: "9z_globant", color: "#7233fe", plate: "dark" },
+  Astralis: { asset: "astralis", color: "#ff0000", plate: "light" },
+  Aurora: { asset: "aurora_gaming", color: "#37bcb3", plate: "dark" },
+  BetBoom: { asset: "betboom_team", color: "#ff4655", plate: "light" },
+  "Chinggis Warriors": { asset: "chinggis_warriors", color: "#f32535", plate: "light" },
+  DENDELE: { asset: "dendele", color: "#1a64b9", plate: "dark" },
+  "Eternal Fire": { asset: "eternal_fire", color: "#a4946a", plate: "dark" },
+  Falcons: { asset: "falcons", color: "#05be6e", plate: "dark" },
+  FaZe: { asset: "faze_clan", color: "#e4002b", plate: "dark" },
+  FlyQuest: { asset: "flyquest", color: "#0b8a4d", plate: "light" },
+  FURIA: { asset: "furia", color: "var(--team-dark)", plate: "dark" },
+  FUT: { asset: "fut_esports", color: "#ed1a3a", plate: "dark" },
+  G2: { asset: "g2_esports", color: "var(--team-dark)", plate: "dark" },
+  GOSH: { asset: "gosh", color: "#ff6200", plate: "dark" },
+  HEROIC: { asset: "heroic", color: "#b21932", plate: "dark" },
+  Imperial: { asset: "imperial_esports", color: "#0cd664", plate: "dark" },
+  Legacy: { asset: "legacy", color: "#fdc800", plate: "dark" },
+  Liquid: { asset: "liquid", color: "#2350e5", plate: "light" },
+  "Lynn Vision": { asset: "lynn_vision_gaming", color: "#b27f1d", plate: "light" },
+  M80: { asset: "m80", color: "#d6ff01", plate: "dark" },
+  MIBR: { asset: "mibr", color: "var(--team-light)", plate: "dark" },
+  MOUZ: { asset: "mouz", color: "#ff2d21", plate: "light" },
+  "Natus Vincere": { asset: "natus_vincere", color: "#fff136", plate: "dark" },
+  Nemiga: { asset: "nemiga", color: "#ed1c24", plate: "dark" },
+  "Ninjas in Pyjamas": { asset: "ninjas_in_pyjamas", color: "#d8ff00", plate: "dark" },
+  PARIVISION: { asset: "pvision", color: "#00c7b1", plate: "dark" },
+  Spirit: { asset: "spirit", color: "var(--team-dark)", plate: "light" },
+  "The MongolZ": { asset: "the_mongolz", color: "var(--team-dark)", plate: "light" },
+  "The One": { asset: "1win", color: "var(--team-light)", plate: "dark" },
+  Vitality: { asset: "vitality", color: "#feff00", plate: "dark" },
+  Wildcard: { asset: "wildcard", color: "#20acf9", plate: "dark" },
+};

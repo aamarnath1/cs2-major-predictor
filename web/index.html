@@ -18,19 +18,19 @@
   --accent: #e8590c; --accent-soft: #fde5d6;
   --c30: #2f9e44; --c30-soft: #dff3e3; --cadv: #1c7ed6; --cadv-soft: #dcebfb; --c03: #e03131; --c03-soft: #fbe0e0;
   --bar: #2b2a25; --shadow: 0 1px 0 rgba(0,0,0,.03), 0 8px 24px -16px rgba(30,25,10,.25);
-  --team-l: 57%;
+  --team-dark: #302d2b; --team-light: #736d66; --team-shade: 20%;
   --head: "Barlow Condensed", "Arial Narrow", sans-serif;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #121210; --paper: #1a1a17; --sunk: #23231f; --line: #2e2d28; --line-2: #3d3b35;
   --ink: #f1efe8; --ink-2: #c4c0b4; --mute: #8f8a7d; --accent: #ff7a2e; --accent-soft: #3b2415;
   --c30: #51cf66; --c30-soft: #173322; --cadv: #4dabf7; --cadv-soft: #15283b; --c03: #ff6b6b; --c03-soft: #3b1b1b;
-  --bar: #ece9df; --shadow: none; --team-l: 71%; } }
+  --bar: #ece9df; --shadow: none; --team-dark: #bdb7ae; --team-light: #eee9e1; --team-shade: 0%; } }
 :root[data-theme="dark"] {
   --bg: #121210; --paper: #1a1a17; --sunk: #23231f; --line: #2e2d28; --line-2: #3d3b35;
   --ink: #f1efe8; --ink-2: #c4c0b4; --mute: #8f8a7d; --accent: #ff7a2e; --accent-soft: #3b2415;
   --c30: #51cf66; --c30-soft: #173322; --cadv: #4dabf7; --cadv-soft: #15283b; --c03: #ff6b6b; --c03-soft: #3b1b1b;
-  --bar: #ece9df; --shadow: none; --team-l: 71%; }
+  --bar: #ece9df; --shadow: none; --team-dark: #bdb7ae; --team-light: #eee9e1; --team-shade: 0%; }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 section, details[id] { scroll-margin-top: 68px; }
@@ -71,7 +71,11 @@ h1 em { font-style: normal; color: var(--accent); }
 @media (prefers-reduced-motion: reduce) { .race .fill { animation: none; } }
 .race .pct { text-align: right; font: 700 18px var(--head); }
 .heroJump { display: inline-block; margin-top: 14px; font-size: 14px; font-weight: 700; color: var(--ink); text-underline-offset: 4px; }
-.team-dot { display: inline-block; width: .66em; height: .66em; margin-right: .4em; border-radius: 50%; background: var(--team-color); vertical-align: .05em; }
+.team-logo { display: inline-flex; align-items: center; justify-content: center; width: 21px; height: 21px; padding: 2px; margin-right: .4em; border-radius: 4px; vertical-align: middle; background: #262321; }
+.team-logo.light { background: #eee9df; }
+.team-logo img { width: 100%; height: 100%; object-fit: contain; }
+.race .team-logo, .mu .team-logo { width: 24px; height: 24px; }
+.chip .team-logo, .node .team-logo { width: 17px; height: 17px; }
 
 section { padding: 38px 0 6px; }
 .eyebrow { font: 700 13px var(--head); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
@@ -126,6 +130,7 @@ details.more > div { padding: 0 16px 16px; }
 .mu .names { display: flex; justify-content: space-between; font-weight: 600; font-size: 14.5px; gap: 8px; }
 .mu .split { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin: 6px 0 4px; background: var(--sunk); }
 .mu .split i { display: block; height: 100%; }
+.mu .split i + i, .duel-bar i + i { border-inline-start: 2px solid var(--paper); }
 .mu .meta { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--mute); gap: 6px; }
 .tag { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; border-radius: 6px; padding: 1px 7px; }
 .tag.flip { background: var(--accent-soft); color: var(--accent); } .tag.fav { background: var(--sunk); color: var(--ink-2); }
@@ -170,7 +175,6 @@ details.more > div { padding: 0 16px 16px; }
 .finish-breakdown strong { display: block; font-size: 15px; }
 .legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12.5px; color: var(--mute); margin-top: 10px; }
 .legend i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
-.legend .team-dot { border-radius: 50%; }
 .scroll { overflow-x: auto; }
 
 svg text { fill: var(--mute); font: 12px Inter, sans-serif; }
@@ -318,6 +322,7 @@ footer a { color: var(--ink-2); }
 </div>
 <footer><div class="wrap" id="foot"></div></footer>
 
+<script src="team-branding.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 const pct = (x, d = 0) => (x == null || isNaN(x)) ? "–" : (100 * x).toFixed(d) + "%";
@@ -341,9 +346,15 @@ fetch("data.json").then(r => r.json()).then(d => { D = d; init(); }).catch(e => 
 
 const stage = n => D.stages.find(s => s.stage === n);
 const isLive = () => D.stages.some(s => s.status === "live") || D.playoffs.status === "live";
-const teamColor = team => `oklch(var(--team-l) .16 ${(30 + (D.matchups?.teams.indexOf(team) ?? 0) * 137.508 + 360) % 360})`;
-const teamDot = team => `<i class="team-dot" aria-hidden="true" style="--team-color:${teamColor(team)}"></i>`;
-const teamLabel = team => teamDot(team) + esc(team);
+const teamColor = team => {
+  const color = TEAM_BRANDING[team]?.color || "var(--team-dark)";
+  return color.startsWith("#") ? `color-mix(in srgb, ${color}, #262321 var(--team-shade))` : color;
+};
+function teamLabel(team) {
+  const brand = TEAM_BRANDING[team];
+  if (!brand) return esc(team);
+  return `<span class="team-logo ${brand.plate}" aria-hidden="true"><img src="team-logos/${brand.asset}.webp" width="96" height="96" alt="" loading="lazy" decoding="async"></span>${esc(team)}`;
+}
 
 function init() {
   const active = D.stages.find(s => s.status !== "complete");
@@ -352,7 +363,7 @@ function init() {
   survSel = new Set(D.major.slice(0, 3).map(r => r.team));
   renderRace(); renderTabs(); renderStage(); initH2H(); renderTrust(); renderMethod();
   $("#trophy").addEventListener("toggle", renderTrophy);
-  $("#foot").innerHTML = `Built with public data from Valve's regional standings and Liquipedia (CC-BY-SA). Not affiliated with Valve or PGL. <a href="https://github.com/aamarnath1/cs2-major-predictor">Source on GitHub</a> · generated ${esc(D.generated)}.`;
+  $("#foot").innerHTML = `Data from Valve and Liquipedia (CC-BY-SA). Team marks via <a href="https://www.pglesports.com/cs2/pgl-major-singapore-2026/">PGL’s Singapore Major</a>. Unofficial fan project. <a href="https://github.com/aamarnath1/cs2-major-predictor">Source on GitHub</a> · generated ${esc(D.generated)}.`;
 }
 function redraw() {
   if (!D) return;
@@ -452,7 +463,7 @@ function scoreSet(s, picks) {
 function renderBuilder(s) {
   const NEED = { 0: 2, 1: 6, 2: 2 };
   const teams = s.teams.filter(t => t.p_in_stage > 0.02).map(t => t.team);
-  $("#chips").innerHTML = teams.map(t => `<button class="chip ${mine[t] !== undefined ? "k" + mine[t] : ""}" data-t="${esc(t)}">${esc(t)}</button>`).join("");
+  $("#chips").innerHTML = teams.map(t => `<button class="chip ${mine[t] !== undefined ? "k" + mine[t] : ""}" data-t="${esc(t)}">${teamLabel(t)}</button>`).join("");
   document.querySelectorAll("#chips .chip").forEach(c => c.onclick = () => {
     const t = c.dataset.t, order = [0, 1, 2, undefined]; let i = order.indexOf(mine[t]);
     for (let k = 1; k <= 4; k++) { const nx = order[(i + k) % 4]; if (nx === undefined || Object.values(mine).filter(v => v === nx).length < NEED[nx]) { if (nx === undefined) delete mine[t]; else mine[t] = nx; break; } }
@@ -472,7 +483,7 @@ function renderPlayoffs() {
   $("#picksIntro").innerHTML = `<b>Playoffs, ${DATES[4]} at the Singapore Indoor Stadium.</b> 8 teams, single elimination, best-of-three, with a best-of-five Grand Final. The Pick'em card asks for 7 picks: 4 quarterfinals, 2 semis and the champion.`;
   if (!P.seeds_known) {
     $("#stageNote").innerHTML = `<div class="note">${P.pick_locked ? "The forecast cutoff has passed. No playoff card was saved." : "The bracket is seeded from Stage 3 results. For now, here's how deep each team is likely to go."}</div>`;
-    $("#sheet").innerHTML = `<div class="card scroll"><table class="tbl"><tr><th>Team</th><th class="r">Makes playoffs</th><th class="r">Semis</th><th class="r">Final</th><th class="r">Wins it</th></tr>${D.major.slice(0, 12).map(r => `<tr><td><b>${esc(r.team)}</b></td>${["playoffs", "semis", "final", "champion"].map(k => `<td class="r num">${pct(r[k])}</td>`).join("")}</tr>`).join("")}</table></div>`;
+    $("#sheet").innerHTML = `<div class="card scroll"><table class="tbl"><tr><th>Team</th><th class="r">Makes playoffs</th><th class="r">Semis</th><th class="r">Final</th><th class="r">Wins it</th></tr>${D.major.slice(0, 12).map(r => `<tr><td><b>${teamLabel(r.team)}</b></td>${["playoffs", "semis", "final", "champion"].map(k => `<td class="r num">${pct(r[k])}</td>`).join("")}</tr>`).join("")}</table></div>`;
     return;
   }
   const sd = P.seeds, pk = P.picks || [], st = P.pick_status || [], slots = P.slots || {};
@@ -480,7 +491,7 @@ function renderPlayoffs() {
   const order = ["R1M1", "R1M2", "R1M3", "R1M4", "R2M1", "R2M2", "R3M1"];
   const pairs = [[sd[0], sd[7]], [sd[3], sd[4]], [sd[1], sd[6]], [sd[2], sd[5]], [pk[0], pk[1]], [pk[2], pk[3]], [pk[4], pk[5]]];
   const box = i => { const real = slots[order[i]] || {}, a = real.a || pairs[i][0], b = real.b || pairs[i][1], w = real.winner;
-    return `<div class="bm"><div class="${w === a && a ? "w" : ""}"><span>${esc(a || "TBD")}</span>${w === a && a ? "<span>W</span>" : ""}</div><div class="${w === b && b ? "w" : ""}"><span>${esc(b || "TBD")}</span>${w === b && b ? "<span>W</span>" : ""}</div>${pk[i] ? `<span class="pk">${st[i] ? `<span class="mark ${st[i]}">${sym[st[i]]}</span>` : ""}Our pick: <b>${esc(pk[i])}</b></span>` : ""}</div>`; };
+    return `<div class="bm"><div class="${w === a && a ? "w" : ""}"><span>${teamLabel(a || "TBD")}</span>${w === a && a ? "<span>W</span>" : ""}</div><div class="${w === b && b ? "w" : ""}"><span>${teamLabel(b || "TBD")}</span>${w === b && b ? "<span>W</span>" : ""}</div>${pk[i] ? `<span class="pk">${st[i] ? `<span class="mark ${st[i]}">${sym[st[i]]}</span>` : ""}Our pick: <b>${esc(pk[i])}</b></span>` : ""}</div>`; };
   const note = !P.picks ? "No valid pre-cutoff card is available to score."
     : P.status !== "upcoming" ? "Picks are locked and marked as results come in."
     : P.pick_locked ? "The card is frozen. Waiting for results from the feed."
@@ -529,7 +540,7 @@ function renderPaths(s) {
     }
     if (w + l === 0) return `<div class="node"><div class="rec">0-0<span>16 teams</span></div></div>`;
     const ranked = cols.map((t, i) => [t, V[i][w][l]]).filter(x => x[1] > 0.005).sort((a, b) => b[1] - a[1]).slice(0, 3);
-    return `<div class="node ${cls}"><div class="rec">${w}-${l}<span>${w === 3 ? "qualify" : l === 3 ? "out" : "likeliest"}</span></div><ol>${ranked.map(([t, p]) => `<li><span>${esc(t)}</span><span class="num muted">${pct(p)}</span></li>`).join("")}</ol></div>`;
+    return `<div class="node ${cls}"><div class="rec">${w}-${l}<span>${w === 3 ? "qualify" : l === 3 ? "out" : "likeliest"}</span></div><ol>${ranked.map(([t, p]) => `<li><span>${teamLabel(t)}</span><span class="num muted">${pct(p)}</span></li>`).join("")}</ol></div>`;
   }).join("")}</div>`).join("");
 }
 
