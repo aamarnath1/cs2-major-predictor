@@ -1,0 +1,9 @@
+.venv/
+data/
+__pycache__/
+.pytest_cache/
+.claude/
+.env
+outputs/*.npy
+outputs/sentiment.json
+outputs/run_log.txt
