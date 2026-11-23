@@ -121,7 +121,8 @@ def vrs_lookup(dates: pd.Series) -> callable:
 
 
 def build_features(
-    m: pd.DataFrame, start: pd.Timestamp | None = None, *, batch_by_day: bool = False
+    m: pd.DataFrame, start: pd.Timestamp | None = None, *, batch_by_day: bool = False,
+    elo_params: EloParams | None = None,
 ) -> tuple[pd.DataFrame, dict]:
     """Return (one feature row per match with winner = side a, final rater states).
 
@@ -129,7 +130,9 @@ def build_features(
     With `batch_by_day`, predictions use prior-day ratings and context. Same-day
     results update the state after every prediction for that day, in canonical order.
     """
-    elo = Elo(EloParams(**json.loads((PROC / "elo_params.json").read_text())))
+    if elo_params is None:
+        elo_params = EloParams(**json.loads((PROC / "elo_params.json").read_text()))
+    elo = Elo(elo_params)
     gl = Glicko2()
     ts: dict = {}
     hist: dict = defaultdict(lambda: deque(maxlen=30))  # (date, won, opp_elo)

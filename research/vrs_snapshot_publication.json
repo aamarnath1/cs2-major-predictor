@@ -1,0 +1,245 @@
+{
+  "source_commit": "f8c55f250fdef796d708aa32814587932154fa04",
+  "files": [
+    {
+      "file": "standings_global_2024_08_06.md",
+      "committed_at": "2024-08-21T22:31:05.0000000Z",
+      "commit": "6b3994e5399d041ec1d3562f01db7883c55a878f"
+    },
+    {
+      "file": "standings_global_2024_08_14.md",
+      "committed_at": "2024-08-21T22:31:05.0000000Z",
+      "commit": "6b3994e5399d041ec1d3562f01db7883c55a878f"
+    },
+    {
+      "file": "standings_global_2024_08_21.md",
+      "committed_at": "2024-08-21T22:31:05.0000000Z",
+      "commit": "6b3994e5399d041ec1d3562f01db7883c55a878f"
+    },
+    {
+      "file": "standings_global_2024_08_28.md",
+      "committed_at": "2024-08-28T18:17:26.0000000Z",
+      "commit": "9dbadf237ce064369833766defe8ec382fdc9137"
+    },
+    {
+      "file": "standings_global_2024_09_04.md",
+      "committed_at": "2024-09-04T18:43:48.0000000Z",
+      "commit": "39110a0933749b0fa607011ef3f6091fc3e4491d"
+    },
+    {
+      "file": "standings_global_2024_09_11.md",
+      "committed_at": "2024-09-11T17:59:11.0000000Z",
+      "commit": "49a634cd5718c7bcd7903441a3a626f4f08e8cd5"
+    },
+    {
+      "file": "standings_global_2024_09_18.md",
+      "committed_at": "2024-09-18T17:04:47.0000000Z",
+      "commit": "222b71c3b241cca0003310cbbb640e374bc7e7da"
+    },
+    {
+      "file": "standings_global_2024_09_26.md",
+      "committed_at": "2024-09-26T17:55:08.0000000Z",
+      "commit": "a2e828fc3754ae350fcd183090cf7f4cfb6a0b3b"
+    },
+    {
+      "file": "standings_global_2024_10_02.md",
+      "committed_at": "2024-10-02T20:49:01.0000000Z",
+      "commit": "c162e50fc1405a4bb4b9fb6fbce355ae11d95588"
+    },
+    {
+      "file": "standings_global_2024_10_09.md",
+      "committed_at": "2024-10-09T17:53:57.0000000Z",
+      "commit": "5be9601ebb79aa45fec46931a87867fd34c3080d"
+    },
+    {
+      "file": "standings_global_2024_10_15.md",
+      "committed_at": "2024-10-15T16:48:11.0000000Z",
+      "commit": "81a4bcd9cd775715530400b85bfa6dfef4dafc5a"
+    },
+    {
+      "file": "standings_global_2024_10_23.md",
+      "committed_at": "2024-10-23T20:32:00.0000000Z",
+      "commit": "17d487386f698634422a1aa6860699c420c3e4f8"
+    },
+    {
+      "file": "standings_global_2024_10_30.md",
+      "committed_at": "2024-10-30T18:16:41.0000000Z",
+      "commit": "8fa8cd8c8690cac9f33045cef134f7a0b3eff4c7"
+    },
+    {
+      "file": "standings_global_2024_11_06.md",
+      "committed_at": "2024-11-06T17:43:14.0000000Z",
+      "commit": "43843908f8054635db19582ea98e64a281caeb9c"
+    },
+    {
+      "file": "standings_global_2024_11_13.md",
+      "committed_at": "2024-11-13T20:27:00.0000000Z",
+      "commit": "9a0c127dc05a3f91a308a28995db6a58494e0889"
+    },
+    {
+      "file": "standings_global_2024_11_25.md",
+      "committed_at": "2024-11-25T16:10:05.0000000Z",
+      "commit": "8a8657be12dc322d1141fe6263cf8270c718b605"
+    },
+    {
+      "file": "standings_global_2024_12_02.md",
+      "committed_at": "2024-12-02T17:28:02.0000000Z",
+      "commit": "c408eada80b0aae06b10da5a90409694f4a5b019"
+    },
+    {
+      "file": "standings_global_2024_12_18.md",
+      "committed_at": "2024-12-18T20:02:27.0000000Z",
+      "commit": "e643784dc0343a403b5973845af6c2802f1cb1c1"
+    },
+    {
+      "file": "standings_global_2024_12_31.md",
+      "committed_at": "2024-12-31T19:22:04.0000000Z",
+      "commit": "35fc3096bd6ab9fd6b0687c431dffe07353cc565"
+    },
+    {
+      "file": "standings_global_2025_01_06.md",
+      "committed_at": "2025-01-06T17:53:54.0000000Z",
+      "commit": "a762daa455e0fa1c39ec4db188301a5b468fe92f"
+    },
+    {
+      "file": "standings_global_2025_01_13.md",
+      "committed_at": "2025-01-13T20:01:11.0000000Z",
+      "commit": "983ef3124d8170a2067b69ec1ebc885457b575a0"
+    },
+    {
+      "file": "standings_global_2025_01_16.md",
+      "committed_at": "2025-01-20T21:18:18.0000000Z",
+      "commit": "aeaa725fdeb937c7d747d9c863efa6fd94128dd7"
+    },
+    {
+      "file": "standings_global_2025_01_17.md",
+      "committed_at": "2025-01-20T21:18:18.0000000Z",
+      "commit": "aeaa725fdeb937c7d747d9c863efa6fd94128dd7"
+    },
+    {
+      "file": "standings_global_2025_01_20.md",
+      "committed_at": "2025-01-20T21:18:18.0000000Z",
+      "commit": "aeaa725fdeb937c7d747d9c863efa6fd94128dd7"
+    },
+    {
+      "file": "standings_global_2025_01_27.md",
+      "committed_at": "2025-01-27T19:43:21.0000000Z",
+      "commit": "2a27801f5c9391fdd5bb7b6ecec3f8e8699c35e8"
+    },
+    {
+      "file": "standings_global_2025_02_03.md",
+      "committed_at": "2025-02-03T18:47:10.0000000Z",
+      "commit": "b3e2791b20488edc40eeedf5062c35cd9665df9b"
+    },
+    {
+      "file": "standings_global_2025_02_24.md",
+      "committed_at": "2025-02-24T23:20:42.0000000Z",
+      "commit": "7078138b9034f4fd9bae0a6152e6b8e8aee23e61"
+    },
+    {
+      "file": "standings_global_2025_03_03.md",
+      "committed_at": "2025-03-03T17:49:38.0000000Z",
+      "commit": "293e01e588b5e751ee0b306dc2958765dc63dce0"
+    },
+    {
+      "file": "standings_global_2025_04_07.md",
+      "committed_at": "2025-04-07T16:35:39.0000000Z",
+      "commit": "548080058dd97a23a13fdfbb02ed8503d46b1dee"
+    },
+    {
+      "file": "standings_global_2025_05_05.md",
+      "committed_at": "2025-05-05T16:56:18.0000000Z",
+      "commit": "5426fc070e21ff44d85cf83a73abcddef601aae6"
+    },
+    {
+      "file": "standings_global_2025_06_02.md",
+      "committed_at": "2025-06-02T17:58:00.0000000Z",
+      "commit": "1ce8398c0be1970319488c23cfd0d4077eaec04a"
+    },
+    {
+      "file": "standings_global_2025_07_07.md",
+      "committed_at": "2025-07-07T20:00:32.0000000Z",
+      "commit": "4608a24180f06d6a34581249168a294c2f21c4f3"
+    },
+    {
+      "file": "standings_global_2025_08_04.md",
+      "committed_at": "2025-08-04T17:22:23.0000000Z",
+      "commit": "2f712c4602300e4eac8f3a4d579ffd8d88038e61"
+    },
+    {
+      "file": "standings_global_2025_09_01.md",
+      "committed_at": "2025-09-01T16:58:36.0000000Z",
+      "commit": "ec65cbf461daa5977d57f80561437961326cfc51"
+    },
+    {
+      "file": "standings_global_2025_10_06.md",
+      "committed_at": "2025-10-06T16:35:02.0000000Z",
+      "commit": "9fd3c0e8b86dbceed3a211cd2a2a34185b99a990"
+    },
+    {
+      "file": "standings_global_2025_11_03.md",
+      "committed_at": "2025-11-03T18:33:49.0000000Z",
+      "commit": "468a448707996aa7067b8201c5fc77b9b95c247e"
+    },
+    {
+      "file": "standings_global_2025_12_01.md",
+      "committed_at": "2025-12-01T18:11:40.0000000Z",
+      "commit": "6b92cd657bfd7c281a3930a842fe2393b5bdb40b"
+    },
+    {
+      "file": "standings_global_2026_01_05.md",
+      "committed_at": "2026-01-05T17:34:33.0000000Z",
+      "commit": "0b2154eacafe50abd2ec251ed78d460d8f833088"
+    },
+    {
+      "file": "standings_global_2026_02_02.md",
+      "committed_at": "2026-02-02T18:03:49.0000000Z",
+      "commit": "73c71008fb393980255103b93d6b868fb616f5ce"
+    },
+    {
+      "file": "standings_global_2026_03_02.md",
+      "committed_at": "2026-03-02T17:40:13.0000000Z",
+      "commit": "3404a877b6ca513a1f508d6b23d20562c4afcc73"
+    },
+    {
+      "file": "standings_global_2026_04_06.md",
+      "committed_at": "2026-04-06T16:13:17.0000000Z",
+      "commit": "3c32325b3f52cfdc12f20325caff69a7bcabb8e6"
+    },
+    {
+      "file": "standings_global_2026_05_04.md",
+      "committed_at": "2026-05-04T17:50:46.0000000Z",
+      "commit": "aac2074bc10fd62a8bf0b2146d7edfb67d224bcf"
+    },
+    {
+      "file": "standings_global_2026_06_01.md",
+      "committed_at": "2026-06-01T17:15:49.0000000Z",
+      "commit": "510968f54723dcb698ad3b04d396140fc263c239"
+    },
+    {
+      "file": "standings_global_2026_07_06.md",
+      "committed_at": "2026-07-06T17:00:13.0000000Z",
+      "commit": "050a38d71d4f5f07d2618bb8bedd54268b93bddf"
+    },
+    {
+      "file": "standings_global_2026_08_03.md",
+      "committed_at": "2026-08-03T17:57:08.0000000Z",
+      "commit": "467b9d2e0e4b369d8b8df5fafcbe080a3c414124"
+    },
+    {
+      "file": "standings_global_2026_09_07.md",
+      "committed_at": "2026-09-09T18:45:20.0000000Z",
+      "commit": "84ccfa4d751fa3801ae6430097a9a66f104ee131"
+    },
+    {
+      "file": "standings_global_2026_10_05.md",
+      "committed_at": "2026-10-05T16:36:11.0000000Z",
+      "commit": "eec4853d7bcf0f1f7efe7f0d901234bef7e98b75"
+    },
+    {
+      "file": "standings_global_2026_11_02.md",
+      "committed_at": "2026-11-02T17:44:42.0000000Z",
+      "commit": "f8c55f250fdef796d708aa32814587932154fa04"
+    }
+  ]
+}
