@@ -44,8 +44,9 @@ Once a stage reaches its scheduled opener, the report scores only a card saved b
 The four-rater ensemble beat a tuned VRS baseline on 560 historical matches between top-rated
 teams. Elo plus Bradley–Terry came close enough that the extra raters have yet to show a clear
 benefit. In the corrected historical Pick'em replay, the ensemble averaged 4.45 correct picks
-against 4.36 for seed picks across 11 stages. That small gap is uncertain, and some stages predate
-the tuning cutoff. A map-pool and veto experiment showed no measurable gain in its test, so it
+against 4.36 for seed picks across 11 stages, which is indistinguishable from seed picks (6 wins, 1 tie,
+4 losses; 95% CI -1.0 to +1.1 picks per stage, within the optimiser's own simulation noise). Some
+stages also predate the tuning cutoff. A map-pool and veto experiment showed no measurable gain in its test, so it
 stays outside the live forecast.
 
 ## Run it yourself

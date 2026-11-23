@@ -44,6 +44,10 @@ def fetch_state(max_age_h: float = 0.25) -> dict[int, dict]:
         st = parse_stage(f"Singapore Stage {n}", title, tmap, lp)
         seeds = [DISPLAY.get(t["name"].casefold()) for t in st["teams"]]
         confirmed = seeds if len(seeds) == 16 and all(seeds) else None
+        if len(seeds) == 16 and confirmed is None:  # field published but a team didn't map: say so loudly
+            missing = [t["name"] for t, d in zip(st["teams"], seeds) if d is None]
+            print(f"WARNING: Stage {n} field is published but these teams are unmapped: {missing}. "
+                  "Add them to cs2p/teams.py or the Liquipedia team map, or the stage stays in preview.")
         if n == 1 and confirmed is None:  # Stage 1 has a published static field.
             confirmed = [d for d, _ in teams.STAGE1]
         matches = [

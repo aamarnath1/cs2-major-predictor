@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - web/**
+      - outputs/bo1_singapore_stage1.json
       - .github/workflows/pages.yml
   workflow_dispatch:
 
@@ -28,6 +29,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: actions/configure-pages@v5
+      - name: Add research files to the site
+        run: |
+          mkdir -p web/research
+          cp outputs/bo1_singapore_stage1.json web/research/
       - uses: actions/upload-pages-artifact@v4
         with:
           path: web
