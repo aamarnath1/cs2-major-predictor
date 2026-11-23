@@ -11,13 +11,13 @@
     "3-1/3-2": [
       "PARIVISION",
       "FlyQuest",
-      "Ninjas in Pyjamas",
-      "9z",
       "HEROIC",
-      "M80"
+      "Ninjas in Pyjamas",
+      "FaZe",
+      "9z"
     ]
   },
-  "frozen_at": "2026-11-22T22:39:45.759701+00:00",
+  "frozen_at": "2026-11-23T17:53:27.931847+00:00",
   "field": [
     "Ninjas in Pyjamas",
     "PARIVISION",
@@ -330,42 +330,42 @@
     {
       "a": "Ninjas in Pyjamas",
       "b": "M80",
-      "p_a": 0.5040621180510243
+      "p_a": 0.5060930430206597
     },
     {
       "a": "PARIVISION",
       "b": "DENDELE",
-      "p_a": 0.5347235233980427
+      "p_a": 0.5520015511896426
     },
     {
       "a": "HEROIC",
       "b": "Imperial",
-      "p_a": 0.5370233571243261
+      "p_a": 0.5554335377097908
     },
     {
       "a": "FaZe",
       "b": "Wildcard",
-      "p_a": 0.5592050341688264
+      "p_a": 0.5883924960110224
     },
     {
       "a": "Liquid",
       "b": "GOSH",
-      "p_a": 0.6317930335430901
+      "p_a": 0.6931112175082489
     },
     {
       "a": "Eternal Fire",
       "b": "FlyQuest",
-      "p_a": 0.46816063171490896
+      "p_a": 0.4523055015972244
     },
     {
       "a": "100 Thieves",
       "b": "Chinggis Warriors",
-      "p_a": 0.670208620962967
+      "p_a": 0.745450712158592
     },
     {
       "a": "9z",
       "b": "Lynn Vision",
-      "p_a": 0.5042915958388221
+      "p_a": 0.5064372356749036
     }
   ],
   "provenance": {
@@ -376,20 +376,24 @@
       "__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "backtest.py": "deadbeee606703d90ca337124f7d29b4e3562b5ea4be4f6cfba9e954e83aaa05",
       "backtest_bt.py": "4f9ccaf97f1c0708d60a81e44217d7526b63b0b43b865ec39b45ab61b6ac4333",
-      "bt.py": "47218446a4fd69425428f2c224728d1e3a3cadac63de6e8e9f10c28d066a65dd",
+      "bo1_experiment.py": "00dc6775e35056c8c9d2358afdb6f70aeabe06188c505f35b8b34f838e98539f",
+      "bo1_walkforward.py": "1f2b2ef4cac270c360e4e9ee77e73bfd2841c23a18c6277151bfcd241fe6bf29",
+      "bt.py": "dd4d16034772a3721706bfaaf3abf6ab7374a405a3a12148343442d90e53984a",
       "elo.py": "63af46bc68e53de32945c23e749a476c400c53e8937d54143f6c7ff9d86769ad",
-      "features.py": "fc1f52455a163a342feea6fe178a24d820ac1f2296ddd287a70f994a4cb6a364",
+      "event_benchmark.py": "cb5b76c7f8494602a9ae1c1779becd26ae0887833737c3af16501c8d3293b0d7",
+      "features.py": "bba870fcf83d6d53339c7791f60e73f1a0c6945a561c90c52902d875751ab9b1",
       "ingest_liquipedia.py": "ac0cfd1aad3db053b410bb3675a7e3b0775e99832185450a562d371115f5c3c2",
       "ingest_vrs.py": "58cd930be1985e3d1edb531bc63e7cd5c85614deaf3f8195622cc15b950f56d4",
-      "live.py": "eb2aab49942152736b8c4dd8d2d52920c4da03bd44ec0c4b126d583a19cfff2c",
+      "live.py": "4cb9a7a02b47dc59d8c99892324a431dc8ce96d03e43c53d3f7485a740afd4ae",
       "maps.py": "27817b8750928e1b0754683f798091a0a9d4ea3b2ef3cd789d94942efa487885",
-      "pickem.py": "7b3587112b0d27e06d0eca0902a334098a6c4cbb142c619a3c9e2bbafd66ca97",
-      "playoffs.py": "05df386a8ed1aa8c512a6a994bfacabe876b78c6d1e2f2e06ba8adffcf7be508",
+      "pickem.py": "a56acc5846d28550fd6e5b5bf37d1b6936e076f440f57bfdca492374f733c69d",
+      "playoffs.py": "cad574edd9991f00fc112e3b1f848cf9c02bad21e84252ecec26faa394370991",
       "replay.py": "9e4f5480751a74a7a46861b273061434c32c393eba9038e534211e93cfee3c39",
-      "run.py": "03fc780e386e399d670525bc760add73e08a780816b56e9905bee4afd8c2fa89",
+      "roster_research.py": "5e48f52f5619b99e2ae30bc844aa04c941f3c2b27775f47be5fdf79fc9cbe8a6",
+      "run.py": "578d0394c64754606d7d0dfb8e487374b0ffe9d2d0d5e9747d011ec0fd1a74d5",
       "sentiment.py": "857fe26aaf4cf2eb5dc4935ec7f77043e59f9c3efd41b991b23ae0cb1c8c66f2",
-      "swiss.py": "2dab07194008142b372208191b911fe8588358c6e89da1eb3e4709bb35eee42c",
-      "teams.py": "e62c57f9df24141aaf95170f8d747957fac709f4ccc2b0de860a38d1a805f2a1",
+      "swiss.py": "4cfedea3d25b844bad4a5456f9105705b6ef089e8f0c08b965f9d0398b10f97c",
+      "teams.py": "c47a72941554ae1a82add4b216799b9edf0d45230c35fc9239c936beba3e3769",
       "zoo.py": "035e5b53dc45f92669d0b6e5f6ae55f078632b310fb1d5f50fe576fc39501cfd"
     },
     "rating_parameter_sha256": {
@@ -715,9 +719,9 @@
       "Chinggis Warriors"
     ],
     "3-1/3-2": [
+      "FlyQuest",
       "HEROIC",
       "Imperial",
-      "FlyQuest",
       "Ninjas in Pyjamas",
       "PARIVISION",
       "Eternal Fire"

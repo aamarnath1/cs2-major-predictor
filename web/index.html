@@ -690,7 +690,6 @@ function renderTrophy() {
 }
 
 /* ---------------- head-to-head ---------------- */
-function bo1(p) { let lo = 0, hi = 1; for (let i = 0; i < 40; i++) { const m = (lo + hi) / 2; if (m * m * (3 - 2 * m) < p) lo = m; else hi = m; } return (lo + hi) / 2; }
 function initH2H() {
   if (!D.matchups?.teams?.length) { $("#h2h").hidden = true; return; }
   const opts = D.power.map(t => `<option>${esc(t.team)}</option>`).join("");
@@ -704,7 +703,7 @@ function updateH2H() {
   const el = $("#duels");
   if (a === b) { el.innerHTML = '<p class="details-copy">Choose two different teams.</p>'; return; }
   const p = D.matchups.p[a][b];
-  el.innerHTML = [["Single map", bo1(p)], ["Best-of-three", p]].map(([format, chance]) => {
+  el.innerHTML = [["Bo1 or Bo3", p]].map(([format, chance]) => {
     const labels = splitLabels(chance);
     return `<div class="duel"><strong>${format}</strong><div><div class="duel-values"><span>${teamLabel(T[a])} ${labels[0]}</span><span>${teamLabel(T[b])} ${labels[1]}</span></div>
       <div class="duel-bar" aria-hidden="true"><i style="width:${100 * chance}%;background-color:${teamColor(T[a])}"></i><i class="${similarColors(T[a], T[b]) ? "striped" : ""}" style="width:${100 * (1 - chance)}%;background-color:${teamColor(T[b])}"></i></div></div></div>`;
