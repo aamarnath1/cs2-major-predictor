@@ -95,3 +95,15 @@ Singapore Round 1 forecasts](outputs/bo1_singapore_stage1.json) are ready to sco
 After refreshing the report, run
 `python -m cs2p.bo1_experiment --score-round1 web/data.json`. It reports progress until all eight
 opening results are present, then scores each frozen variant with log-loss and Brier score.
+
+The research checks below print JSON without publishing a forecast.
+
+| Check | Command |
+| --- | --- |
+| Chronological Major rating and Pick’em benchmark | `python -m cs2p.event_benchmark` |
+| Broader Bo1 walk-forward comparison | `python -m cs2p.bo1_walkforward` |
+| Roster and low-history sensitivity | `python -m cs2p.roster_research --availability research/vrs_snapshot_publication.json` |
+
+The roster check uses the Valve revision pinned in the
+[publication manifest](research/vrs_snapshot_publication.json). It tests changes in published
+rosters, since the historical data does not reliably record who stood in at a specific match.
