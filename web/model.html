@@ -250,7 +250,7 @@ function renderStatic() {
     ["Data", "VRS + Liquipedia", `<b>Valve Regional Standings</b> pages list every ranked team's recent matches. Merging all monthly snapshots since Aug 2024 rebuilds about 37k series back to Feb 2024. <b>Liquipedia</b> (via its API, rate-limited and cached) adds results from CS2's launch in Sep 2023 and keeps data current between VRS updates. It also gives map scores, past Major Swiss stages and live Singapore results. Team names are deduplicated case-insensitively, and same-name rosters are kept apart.`],
     ["Rate", "4 rating systems", `<b>Elo</b> (K=24, tuned), <b>Glicko-2</b> (rating uncertainty grows with inactivity), <b>TrueSkill</b> (Bayesian skill and uncertainty) and <b>Bradley–Terry</b> (fitted globally with a 180-day half-life, which resists regional rating inflation). Elo and BT settings were tuned on Jul 2025–Feb 2026, before the test window.`],
     ["Combine", "Logit average", `Each model's Bo3 win probability is converted to log-odds, averaged, and converted back. No model reliably beat the others on unseen matches, so averaging spreads the risk of any one being wrong.`],
-    ["Convert", "Bo1 / Bo3 / Bo5", `Ratings are fitted on series results. Single-map odds are derived by assuming independent maps: we solve q²(3−2q) = p for the map probability q, and the Bo5 final uses the same q. A separate experiment (below) tests whether raw series odds are better for Bo1.`],
+    ["Convert", "Bo1 / Bo3 / Bo5", `Ratings are fitted on a mix of Bo1 and Bo3 results, so the same match odds are used for both. On S-tier events, converting them to single-map odds made Bo1 forecasts worse (log-loss +0.009 to +0.016 vs raw), so the conversion was dropped. Only the Bo5 final is stretched, by assuming independent maps: q²(3−2q) = p for the map probability q.`],
     ["Simulate", "Swiss + playoffs", `Each stage is played thousands of times with the official rules: seed i vs i+8 in round 1, later rounds paired within each record by Buchholz then seed (no rematches), Bo3 for advancement and elimination matches, and all-Bo3 in Stage 3. Stage 2/3 seeding: invites take 1–8 by VRS, qualifiers 9–16 by record. During the event, real results are locked in and only the remainder is simulated.`],
     ["Optimise", "Pick'em card", `Rather than picking the "best" teams, a local search picks the 2 / 6 / 2 card that <b>maximises the chance of 5+ correct</b> across the simulations. Cards freeze with a timestamp before each stage's cutoff and are scored live as results arrive.`],
   ];
@@ -296,7 +296,7 @@ function renderStatic() {
     ["ok", "Swiss pairing and seeding are exact.", "The simulator reproduced 325 of 325 real pairings across 13 past Major stages, including the late-round priority rules, and all 8 Stage 2/3 seeding transitions."],
     ["ok", "No look-ahead in the match tests.", "The tuning and test windows don't overlap, same-day matches use previous-day ratings, and learned models only refit on earlier data. Pick'em cards are saved before each cutoff."],
     ["ok", "Beating Valve's ranking survives scrutiny.", "Every rater beats VRS even after correcting for six comparisons, and even against a VRS scale fitted on the test set itself."],
-    ["no", "Bo1 odds are probably too flat.", "The raters learn from a mix of Bo1 and Bo3 results, so their output is already close to a single-map probability. Converting it again pulls Bo1 odds toward 50%. On past Majors the model expected 40.5 correct picks and actually got 50. A fix (use raw odds for Bo1) is being tested before it's adopted."],
+    ["dir", "Bo1 odds were too flat (fixed).", "The raters learn from a mix of Bo1 and Bo3 results, so their output is already close to a single-map probability. Converting it again pulled Bo1 odds toward 50%: on past Majors the model expected 40.5 correct picks and actually got 50. A walk-forward test agreed for S-tier events (raw odds better on 2026 S/A-tier Bo1s, 95% CI −0.022 to −0.007 log-loss) but not for B-tier. The Major now uses raw odds for Bo1. On the Stage 1 card this changed one pick (M80 → FaZe)."],
     ["no", "The chance of the coin is understated.", "Past cards predicted about a 28% chance of 5+ correct but hit it in 6 of 11 stages. Treat the published coin chance as conservative until the Bo1 fix lands."],
     ["meh", "Pick'em vs seeds can't be settled yet.", "11 stages with a per-stage spread of about ±2 picks can only detect a very large edge. Detecting a half-pick edge would take about 110 stages. A finer test, scoring each team's predicted finish rather than card hits, is planned."],
     ["meh", "Stand-ins and new rosters are not modelled.", "No adjustment is applied, and recent lineups aren't in the newest data. Testing an uncertainty penalty for changed lineups is on the list."],
@@ -305,7 +305,7 @@ function renderStatic() {
   $("#auditList").innerHTML = audit.map(([k, c, e]) => `<div class="claim"><span class="verdict ${k}">${labA[k]}</span><p><b>${c}</b> ${e}</p></div>`).join("");
   const si = Object.keys(D.stand_ins || {}).join(", ");
   $("#assumptions").innerHTML = [
-    `<b>Maps are independent.</b> The Bo1/Bo5 conversion assumes each map is an independent draw at the same strength.`,
+    `<b>Maps are independent.</b> The Bo5 final conversion assumes each map is an independent draw at the same strength.`,
     `<b>Stand-ins aren't modelled.</b> ${esc(si)} are treated at full strength. A roster-change shrink was only tested on permanent roster changes (and came out at zero), never on stand-ins. Ratings follow team names.`,
     `<b>Swiss pairing approximates Valve's.</b> We pair top vs bottom within each record group by Buchholz then seed, avoiding rematches. Valve uses a fixed priority table that can differ in rare cases.`,
     `<b>Tier mix.</b> Most training matches are B-tier. Ratings transfer across tiers through shared opponents, but top-tier calibration rests on a smaller sample.`,
@@ -314,7 +314,7 @@ function renderStatic() {
   ].map(x => `<li>${x}</li>`).join("");
   $("#research").innerHTML = [
     `<b>Event-by-event benchmark.</b> Tune using only earlier events, then compare ensemble vs Elo+BT vs tuned VRS on the same fixtures, scoring both match probabilities and the resulting Pick'em cards.`,
-    `<b>Bo1 conversion by tier.</b> Raw series odds did better on top-tier Bo1s in one test but worse in B-tier. More events are needed before switching.`,
+    `<b>Bo1 odds by tier.</b> Raw odds beat the converted ones on S-tier Bo1s but lost on B-tier Bo1s. The Major is S-tier, so it uses raw odds. Singapore's own Round 1 results will be scored against both.`,
     `<b>Uncertainty for roster changes.</b> Test whether shrinking odds toward 50% for stand-ins, new rosters and thin histories improves log-loss.`,
     `<b>Calibration of the ensemble.</b> Logit averaging can be slightly over- or under-confident, so fit a temperature on the tuning window and check it on the test set.`,
   ].map(x => `<li>${x}</li>`).join("");
