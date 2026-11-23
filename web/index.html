@@ -756,7 +756,7 @@ function renderMethod() {
   renderEvidence();
   const si = Object.keys(D.stand_ins || {}).join(", ");
   $("#caveats").innerHTML = [
-    `<b>Stand-ins aren't penalised</b> (${esc(si)}). Our tests couldn't detect a roster-change effect, so weigh those yourself.`,
+    `<b>Stand-ins aren't modelled</b> (${esc(si)}). The model treats these teams at full strength, so weigh them yourself.`,
     `<b>New rosters are uncertain.</b> GOSH (s1mple's team) has a short track record.`,
     `<b>No player form or map vetoes.</b> The model sees results, not who played well or why.`,
     `<b>Stage 2 and 3 picks are previews</b> until their fields are confirmed. Everything reruns as results come in.`,

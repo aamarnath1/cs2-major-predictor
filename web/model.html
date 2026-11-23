@@ -104,7 +104,7 @@ footer a { color: var(--ink-2); }
 <nav aria-label="Pages"><div class="wrap">
   <a class="brand" href="./">SGP<b>/</b>Major Sim</a>
   <div class="pages"><a href="./">Overview</a><a href="model.html" class="on" aria-current="page">Model details</a></div>
-  <div class="links"><a href="#pipeline">Pipeline</a><a href="#claims">Claims</a><a href="#zoo">Models</a><a href="#calibration">Calibration</a><a href="#replay">Pick'em replay</a><a href="#disagree">Disagreement</a><a href="#experiments">Experiments</a><a href="#limits">Limits</a></div>
+  <div class="links"><a href="#pipeline">Pipeline</a><a href="#claims">Claims</a><a href="#zoo">Models</a><a href="#calibration">Calibration</a><a href="#replay">Pick'em replay</a><a href="#disagree">Disagreement</a><a href="#experiments">Experiments</a><a href="#audit">Audit</a><a href="#limits">Limits</a></div>
   <button class="iconbtn" id="theme" aria-label="Toggle light or dark theme">◐</button>
 </div></nav>
 
@@ -178,6 +178,13 @@ footer a { color: var(--ink-2); }
     <div class="card"><h3>Map pools and vetoes</h3><div id="mapExp"></div></div>
     <div class="card"><h3>Bo1 conversion (Singapore R1)</h3><div id="bo1Exp"></div></div>
   </div>
+</section>
+
+<section id="audit">
+  <div class="eyebrow">Independent audit</div>
+  <h2>What a second look found</h2>
+  <p class="intro">Before the event, a separate review re-ran the evaluation from scratch, looking for leakage, overclaiming and wrong assumptions. Here's what it found, and what's being done about it.</p>
+  <div class="card claims" id="auditList"></div>
 </section>
 
 <section id="limits">
@@ -261,10 +268,10 @@ function renderStatic() {
   const raterSig = z.results.filter(r => !["VRS points", PROD].includes(r.model) && sig(r)).length;
   const hist = z.history && [...z.history].sort((a, b) => a.from.localeCompare(b.from));
   const claims = [
-    [vrsSig ? "ok" : "meh", `Our models beat Valve's ranking at single matches.`, `VRS log-loss ${f4(vrs.logloss)} vs ${f4(prod.logloss)} for the ensemble. The paired 95% interval for the difference (${vrs.delta_ci.map(x => x.toFixed(3)).join(" to ")}) ${vrsSig ? "excludes zero" : "includes zero"}.`],
+    [vrsSig ? "ok" : "meh", `Our models beat Valve's ranking at single matches.`, `VRS log-loss ${f4(vrs.logloss)} vs ${f4(prod.logloss)} for the ensemble. The paired 95% interval for the difference (${vrs.delta_ci.map(x => x.toFixed(3)).join(" to ")}) ${vrsSig ? "excludes zero" : "includes zero"}. Part of the gain is fresher data: VRS snapshots can be up to about five weeks old.`],
     [raterSig === 0 ? "meh" : "ok", `The rating models are about equally good.`, `${raterSig === 0 ? "No" : raterSig} model${raterSig === 1 ? "" : "s"} differ significantly from production. The best by point estimate was ${esc(best.model)} (${f4(best.logloss)}). Picking a "winner" from 10 models on one test set would overfit, so we average instead.`],
     [v && v.ci[0] > 0 ? "ok" : "meh", `Our Pick'em cards beat picking by seed.`, v ? `Over ${R.summary["Seed baseline"].stages} past stages: ${v.mean_diff >= 0 ? "+" : ""}${v.mean_diff.toFixed(2)} correct picks per stage, 95% CI ${v.ci[0].toFixed(1)} to +${v.ci[1].toFixed(1)}, record ${v.wins}-${v.ties}-${v.losses}. <b>Inconclusive</b>: 11 stages can't separate a small edge from luck.` : "Not available."],
-    [M && Math.abs(M.map_delta.mean) < 0.002 ? "no" : "meh", `Map-pool modelling improves predictions.`, M ? `No: map-level log-loss ${f4(M.map_level.with_map_offsets.logloss)} with map strengths vs ${f4(M.map_level.no_map_offsets.logloss)} without (n=${M.map_level.n.toLocaleString()}). Not used.` : "Not available."],
+    [M && Math.abs(M.map_delta.mean) < 0.002 ? "no" : "meh", `Map-pool modelling improves predictions.`, M ? `No: map-level log-loss ${f4(M.map_level.with_map_offsets.logloss)} with map strengths vs ${f4(M.map_level.no_map_offsets.logloss)} without (n=${M.map_level.n.toLocaleString()}). Not used. The comparison baseline is the map model's own team strengths, not the live ensemble.` : "Not available."],
     [hist && hist[0].logloss < hist[hist.length - 1].logloss ? "dir" : "meh", `More history makes better forecasts.`, hist ? `Training from ${hist[0].from} gives ${f4(hist[0].logloss)} vs ${f4(hist[hist.length - 1].logloss)} from ${hist[hist.length - 1].from}. Gains shrink as history grows. This is a single comparison without an interval, so treat it as directional.` : "Not available."],
   ];
   const lab = { ok: "Supported", dir: "Directional", meh: "Inconclusive", no: "Not supported" };
@@ -285,10 +292,21 @@ function renderStatic() {
     $("#bo1Exp").innerHTML = `<p class="small ink2" style="margin-top:0">Frozen Round 1 forecasts compare three Bo1 conversions (independent-maps formula, raw series odds, calibrated slope). The detailed file is published after the next site build.</p>`;
   }
 
+  const audit = [
+    ["ok", "Swiss pairing and seeding are exact.", "The simulator reproduced 325 of 325 real pairings across 13 past Major stages, including the late-round priority rules, and all 8 Stage 2/3 seeding transitions."],
+    ["ok", "No look-ahead in the match tests.", "The tuning and test windows don't overlap, same-day matches use previous-day ratings, and learned models only refit on earlier data. Pick'em cards are saved before each cutoff."],
+    ["ok", "Beating Valve's ranking survives scrutiny.", "Every rater beats VRS even after correcting for six comparisons, and even against a VRS scale fitted on the test set itself."],
+    ["no", "Bo1 odds are probably too flat.", "The raters learn from a mix of Bo1 and Bo3 results, so their output is already close to a single-map probability. Converting it again pulls Bo1 odds toward 50%. On past Majors the model expected 40.5 correct picks and actually got 50. A fix (use raw odds for Bo1) is being tested before it's adopted."],
+    ["no", "The chance of the coin is understated.", "Past cards predicted about a 28% chance of 5+ correct but hit it in 6 of 11 stages. Treat the published coin chance as conservative until the Bo1 fix lands."],
+    ["meh", "Pick'em vs seeds can't be settled yet.", "11 stages with a per-stage spread of about ±2 picks can only detect a very large edge. Detecting a half-pick edge would take about 110 stages. A finer test, scoring each team's predicted finish rather than card hits, is planned."],
+    ["meh", "Stand-ins and new rosters are not modelled.", "No adjustment is applied, and recent lineups aren't in the newest data. Testing an uncertainty penalty for changed lineups is on the list."],
+  ];
+  const labA = { ok: "Holds up", no: "Needs fixing", meh: "Open" };
+  $("#auditList").innerHTML = audit.map(([k, c, e]) => `<div class="claim"><span class="verdict ${k}">${labA[k]}</span><p><b>${c}</b> ${e}</p></div>`).join("");
   const si = Object.keys(D.stand_ins || {}).join(", ");
   $("#assumptions").innerHTML = [
     `<b>Maps are independent.</b> The Bo1/Bo5 conversion assumes each map is an independent draw at the same strength.`,
-    `<b>No roster adjustment.</b> Stand-ins (${esc(si)}) and new rosters get no change, because backtests couldn't measure one. Ratings follow team names.`,
+    `<b>Stand-ins aren't modelled.</b> ${esc(si)} are treated at full strength. A roster-change shrink was only tested on permanent roster changes (and came out at zero), never on stand-ins. Ratings follow team names.`,
     `<b>Swiss pairing approximates Valve's.</b> We pair top vs bottom within each record group by Buchholz then seed, avoiding rematches. Valve uses a fixed priority table that can differ in rare cases.`,
     `<b>Tier mix.</b> Most training matches are B-tier. Ratings transfer across tiers through shared opponents, but top-tier calibration rests on a smaller sample.`,
     `<b>No LAN or travel effects.</b> Online and LAN results are weighted equally, and Singapore's timezone isn't modelled.`,
