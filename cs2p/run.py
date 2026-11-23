@@ -16,7 +16,7 @@ import pandas as pd
 
 from cs2p import teams
 from cs2p.bt import fit_bt
-from cs2p.elo import PROC, load_matches, win_prob
+from cs2p.elo import PROC, EloParams, load_matches, win_prob
 from cs2p.features import build_features, ts_win_prob, TS
 from cs2p.live import fetch_state, fixed_rounds, major_matches, simulate_major
 from cs2p.pickem import NEED, optimise, score
@@ -80,15 +80,19 @@ def matchup_matrix(
     roster: list[tuple[str, str]] = ALL_TEAMS,
     as_of: pd.Timestamp = AS_OF,
     stand_ins: dict[str, int] = teams.STAND_INS,
+    *,
+    elo_params: EloParams | None = None,
+    bt_params: dict[str, float] | None = None,
+    batch_by_day: bool = False,
 ) -> tuple[pd.DataFrame, dict[str, pd.DataFrame]]:
     """P(row team beats column team) in a Bo3 using only matches before `as_of`; plus each rater's matrix.
 
     `roster` is a list of (display name, VRS name).
     """
     m = m[m.date < as_of]
-    _, state = build_features(m, start=as_of)
+    _, state = build_features(m, start=as_of, batch_by_day=batch_by_day, elo_params=elo_params)
     elo, gl, ts = state["elo"], state["glicko"], state["ts"]
-    btp = json.loads((PROC / "bt_params.json").read_text())
+    btp = json.loads((PROC / "bt_params.json").read_text()) if bt_params is None else bt_params
     bt = fit_bt(m, as_of, btp["half_life_days"], btp["prior"])
     names = [d for d, _ in roster]
     keys = [v.casefold() for _, v in roster]

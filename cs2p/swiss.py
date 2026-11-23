@@ -178,6 +178,8 @@ def simulate(
     all_bo3: bool = False,
     fixed_rounds: FixedRounds | None = None,
     visits: np.ndarray | None = None,
+    *,
+    p_bo1: np.ndarray | None = None,
 ) -> np.ndarray:
     """Simulate a Swiss stage many times.
 
@@ -189,12 +191,14 @@ def simulate(
         fixed_rounds: real pairings/results to replay before simulating the rest.
         visits: optional (16, 4, 4) array; receives the probability that each team ever
             holds each W-L record (useful for drawing the Swiss path diagram).
+        p_bo1: optional separately calibrated matrix for best-of-one matches.
 
     Returns:
         (n_sims, 16) int array of outcome codes (ADV_30, ADV, ELIM_03, ELIM).
     """
     rng = np.random.default_rng(seed)
-    p_bo1 = bo1_from_bo3(p_bo3)
+    if p_bo1 is None:
+        p_bo1 = bo1_from_bo3(p_bo3)
     out = np.empty((n_sims, p_bo3.shape[0]), dtype=np.int8)
     for s in range(n_sims):
         out[s], _ = run_stage(p_bo3, rng, all_bo3, fixed_rounds, p_bo1, visits)
