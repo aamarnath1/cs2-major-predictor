@@ -184,7 +184,8 @@ def simulate_major(P: pd.DataFrame, state: dict, n: int, seed: int = 1) -> dict:
             else:
                 field = [d for d, _ in INVITES[s]] + qualifiers
             ix = [col[t] for t in field]
-            c, order = run_stage(Pv[np.ix_(ix, ix)], rng, all_bo3=(s == 3), fixed_rounds=fixed[s])
+            sub = Pv[np.ix_(ix, ix)]  # raw odds for Bo1 as well as Bo3 (see run.stage_block)
+            c, order = run_stage(sub, rng, all_bo3=(s == 3), fixed_rounds=fixed[s], p_bo1=sub)
             codes[s][i, ix] = c
             qualifiers = [field[t] for t in order if c[t] in (ADV_30, ADV)]
         ps = [col[t] for t in qualifiers]  # Stage 3 standings order = playoff seeds

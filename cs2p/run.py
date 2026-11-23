@@ -21,7 +21,7 @@ from cs2p.features import build_features, ts_win_prob, TS
 from cs2p.live import fetch_state, fixed_rounds, major_matches, simulate_major
 from cs2p.pickem import NEED, optimise, score
 from cs2p.playoffs import all_brackets, optimise_bracket, playoff_challenge
-from cs2p.swiss import ADV, ADV_30, ELIM_03, bo1_from_bo3, simulate
+from cs2p.swiss import ADV, ADV_30, ELIM_03, simulate
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "outputs"
@@ -150,10 +150,10 @@ def stage_block(s: int, st: dict, P: pd.DataFrame, per_rater: dict, major: dict,
         fr = fixed_rounds(cols, st["matches"])
         visits = np.zeros((16, 4, 4))
         Ps = P.loc[cols, cols].values
-        outcomes = simulate(Ps, n_sims=n_stage, seed=s, all_bo3=(s == 3), fixed_rounds=fr, visits=visits)
+        # Raw odds for Bo1 too: at Majors they are already calibrated for single maps (see bo1_walkforward).
+        outcomes = simulate(Ps, n_sims=n_stage, seed=s, all_bo3=(s == 3), fixed_rounds=fr, visits=visits, p_bo1=Ps)
         in_stage = np.ones(len(cols))
-        p1 = Ps if s == 3 else bo1_from_bo3(Ps)  # round 1 is Bo1 in Stages 1-2, Bo3 in Stage 3
-        round1 = [{"a": cols[i], "b": cols[i + 8], "p_a": float(p1[i, i + 8])} for i in range(8)]
+        round1 = [{"a": cols[i], "b": cols[i + 8], "p_a": float(Ps[i, i + 8])} for i in range(8)]
     else:  # field not set yet: preview from full-Major sims (teams may or may not reach this stage)
         cm = major["codes"][s]
         keep = (cm >= 0).mean(0) > 0
@@ -176,7 +176,7 @@ def stage_block(s: int, st: dict, P: pd.DataFrame, per_rater: dict, major: dict,
             }
             if "Elo" in per_rater:
                 elo_p = per_rater["Elo"].loc[cols, cols].values
-                elo_outcomes = simulate(elo_p, n_sims=n_stage, seed=s, all_bo3=(s == 3))
+                elo_outcomes = simulate(elo_p, n_sims=n_stage, seed=s, all_bo3=(s == 3), p_bo1=elo_p)
                 elo_picks, _ = optimise(elo_outcomes)
                 evidence["elo_p_bo3"] = elo_p.tolist()
                 evidence["elo_picks"] = {LABELS[c]: [cols[t] for t in ts] for c, ts in elo_picks.items()}
@@ -205,7 +205,8 @@ def stage_block(s: int, st: dict, P: pd.DataFrame, per_rater: dict, major: dict,
         rows.append(row)
     if seeds_known:  # per-rater qualify odds show where the models disagree
         for r, Pr in per_rater.items():
-            o = simulate(Pr.loc[cols, cols].values, n_sims=3000, seed=7, all_bo3=(s == 3), fixed_rounds=fr)
+            pr = Pr.loc[cols, cols].values
+            o = simulate(pr, n_sims=3000, seed=7, all_bo3=(s == 3), fixed_rounds=fr, p_bo1=pr)
             for i, row in enumerate(rows):
                 row[f"q_{r}"] = float(((o[:, i] == ADV_30) | (o[:, i] == ADV)).mean())
 
