@@ -144,6 +144,25 @@ details.more > div { padding: 0 16px 16px; }
 
 /* swiss paths */
 .swissWrap { overflow-x: auto; }
+.tbl tr.us td { background: var(--accent-soft); font-weight: 700; }
+.tbl a { color: inherit; }
+.score3 { display: inline-flex; gap: 8px; font-variant-numeric: tabular-nums; }
+.score3 .h { color: var(--win-text); } .score3 .m { color: var(--loss-text); } .score3 .o { color: var(--mute); }
+.slotchip { display: inline-block; font-size: 11px; font-weight: 700; border-radius: 6px; padding: 1px 7px; white-space: nowrap; }
+.slotchip.k0 { background: var(--c30-soft); color: var(--win-text); } .slotchip.k1 { background: var(--cadv-soft); color: var(--cadv); } .slotchip.k2 { background: var(--c03-soft); color: var(--loss-text); } .slotchip.kn { background: var(--sunk); color: var(--mute); }
+.disagree { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+.disagree > div { background: var(--sunk); border-radius: 12px; padding: 10px 12px; font-size: 13.5px; color: var(--ink-2); line-height: 1.45; }
+.disagree b.t { display: block; color: var(--ink); font-size: 15px; margin-bottom: 4px; }
+.whatif { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 6px 0 10px; }
+.whatif select { min-height: 36px; border-radius: 8px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); padding: 4px 8px; font: inherit; }
+.wiOut { font-size: 14px; color: var(--ink-2); }
+.wiOut ul { margin: 8px 0 0; padding-left: 18px; }
+.shareRow { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+.pathSvg { display: block; width: 100%; min-width: 520px; height: auto; }
+.pathSvg text { font: 700 13px var(--head); fill: var(--ink); }
+.pathSvg .sub { font: 600 11px system-ui, sans-serif; fill: var(--mute); }
+.pathSvg .colh { font: 700 11px var(--head); letter-spacing: .1em; fill: var(--mute); }
+.pathNote { font-size: 13.5px; color: var(--ink-2); margin: 4px 0 10px; }
 .swiss { display: grid; grid-template-columns: repeat(6, minmax(130px, 1fr)); gap: 10px; min-width: 830px; align-items: center; }
 .col { display: flex; flex-direction: column; gap: 10px; justify-content: center; }
 .colhead { font: 700 13px var(--head); letter-spacing: .1em; text-transform: uppercase; color: var(--mute); text-align: center; }
@@ -260,7 +279,7 @@ footer a { color: var(--ink-2); }
 <a class="skip-link" href="#report">Skip to the report</a>
 <nav aria-label="Report sections"><div class="wrap">
   <div class="brand">SGP<b>/</b>Major Sim</div>
-  <div class="links"><a href="#picks">Pick'em</a><a href="#stageGuide">Stage guide</a><a href="#odds">Stage finishes</a><a href="#explore">Explore</a><a href="#trust">How it works</a></div>
+  <div class="links"><a href="#picks">Pick'em</a><a href="#experts">Vs experts</a><a href="#stageGuide">Stage guide</a><a href="#odds">Stage finishes</a><a href="#explore">Explore</a><a href="#trust">How it works</a></div>
   <a href="model.html" class="pageLink">Model details →</a>
   <button class="iconbtn" id="theme" aria-label="Toggle light or dark theme">◐ Theme</button>
 </div></nav>
@@ -295,6 +314,16 @@ footer a { color: var(--ink-2); }
   <div id="sheet"></div>
 </section>
 
+<section id="experts" hidden>
+  <div class="eyebrow">Model vs experts</div>
+  <h2>How our card stacks up</h2>
+  <p class="intro" id="expertsIntro"></p>
+  <div class="card scroll"><table class="tbl" id="expertsTable"></table></div>
+  <h3 style="margin:22px 0 10px">Where we disagree</h3>
+  <div class="disagree" id="disagree"></div>
+  <p class="small muted" id="expertsNote" style="margin-top:12px"></p>
+</section>
+
 <section id="stageGuide">
   <div class="eyebrow">Stage guide</div>
   <div id="guideTabs" class="tabs" role="group" aria-label="Stage guide"></div>
@@ -319,10 +348,10 @@ footer a { color: var(--ink-2); }
 <section id="explore">
   <h2>Explore the matchups and paths</h2>
   <div class="explore">
-    <details class="more" id="paths">
+    <details class="more" id="paths" open>
       <summary>Follow a team through Swiss</summary>
       <div>
-        <p class="details-copy">Pick a team to see its chance of reaching each record after each round.</p>
+        <p class="details-copy">Pick a team to see every route through the stage. Thicker lines are likelier routes, and the solid outline marks where the team has really been.</p>
         <div class="chips pickTeam" id="pathTeams"></div>
         <div class="swissWrap" tabindex="0" role="region" aria-label="Swiss paths, scroll for later rounds"><div class="swiss" id="swiss"></div></div>
         <div class="legend"><span><i style="background:var(--c30)"></i>Advances</span><span><i style="background:var(--c03)"></i>Eliminated</span></div>
@@ -448,7 +477,7 @@ function init() {
   guide = (confirmed.find(s => s.stage === cur) || confirmed.at(-1))?.stage ?? 1;
   $("#updated").innerHTML = `Updated ${esc(D.generated)} · match history through ${esc(D.data_through)}${isLive() ? `<span class="livebadge"><i></i>Live</span>` : ""}`;
   survSel = new Set(D.major.slice(0, 3).map(r => r.team));
-  renderRace(); renderTimeline(); renderTabs(); renderStage(); renderGuide(); initH2H(); renderTrust(); renderMethod();
+  renderRace(); renderTimeline(); renderTabs(); renderExperts(); renderStage(); renderGuide(); initH2H(); renderTrust(); renderMethod();
   $("#trophy").addEventListener("toggle", renderTrophy);
   $("#foot").innerHTML = `Data from Valve and Liquipedia (CC-BY-SA). Team marks via <a href="https://www.pglesports.com/cs2/pgl-major-singapore-2026/">PGL’s Singapore Major</a>. Unofficial fan project. <a href="https://github.com/aamarnath1/cs2-major-predictor">Source on GitHub</a> · generated ${esc(D.generated)}.`;
 }
@@ -554,6 +583,12 @@ function renderStage() {
   $("#sheet").innerHTML = `<div class="sheet">${cols}</div>
     ${live ? `<div class="card verdict"><strong class="big num">${hits}/10</strong><span class="ink2">correct so far · ${misses} wrong · ${alive} still alive</span></div>` : ""}
     ${compare}
+    <div class="shareRow"><button class="btn" id="shareBtn">Download this card as an image</button><span class="small muted">Handy for Reddit or Discord.</span></div>
+    ${s.seeds_known && s.outcomes?.length ? `<details class="more" id="whatIf"><summary>What if…? Lock in a result and see what changes</summary><div>
+      <p class="details-copy">Choose a team and a finish. We keep only the simulations where that happened and recount everything else.</p>
+      <div class="whatif"><select id="wiTeam" aria-label="Team">${s.outcome_cols.map(t => `<option>${esc(t)}</option>`).join("")}</select>
+      <select id="wiCode" aria-label="Finish"><option value="0">goes 3-0</option><option value="1">goes 3-1 or 3-2</option><option value="3">goes 2-3 or 1-3</option><option value="2">goes 0-3</option></select></div>
+      <div class="wiOut" id="wiOut" aria-live="polite"></div></div></details>` : ""}
     <details class="more" id="builder"><summary>Build your own picks and compare</summary><div>
       <p class="small ink2">Tap a team to cycle it through <b>3-0 → Advance → 0-3 → none</b>. Both cards are compared on the same sample of ${s.outcomes.length.toLocaleString()} simulations. The headline odds use the full run.</p>
       <div class="chips" id="chips"></div>
@@ -566,8 +601,53 @@ function renderStage() {
     if (target.isConnected && target.open) distBars($("#dist"), s.score_dist);
   };
   mine = {}; setOurs(s, mine); renderBuilder(s);
+  $("#shareBtn").onclick = () => shareCard(s);
+  if ($("#whatIf")) { $("#wiTeam").onchange = $("#wiCode").onchange = () => whatIf(s); whatIf(s); }
   $("#reset").onclick = () => { mine = {}; setOurs(s, mine); renderBuilder(s); };
   $("#clear").onclick = () => { mine = {}; renderBuilder(s); };
+}
+function whatIf(s) {
+  const ti = s.outcome_cols.indexOf($("#wiTeam").value), code = +$("#wiCode").value;
+  const rows = s.outcomes.filter(r => r[ti] === code), n = rows.length, N = s.outcomes.length;
+  const share = n / N;
+  if (n < 30) { $("#wiOut").innerHTML = `This happened in only ${n} of ${N.toLocaleString()} simulations (${pct(share, 1)}), too few to say what follows.`; return; }
+  const ours = {}; setOurs(s, ours);
+  const want = s.outcome_cols.map(t => ours[t] === undefined ? -1 : ours[t]);
+  const p5 = rows.filter(r => r.reduce((c, x, i) => c + (want[i] >= 0 && x === want[i]), 0) >= 5).length / n;
+  const base = scoreSet(s, ours).p5;
+  const adv = (rs, i) => rs.filter(r => r[i] === 0 || r[i] === 1).length / rs.length;
+  const moves = s.outcome_cols.map((t, i) => [t, adv(rows, i) - adv(s.outcomes, i), adv(rows, i)]).filter(([t]) => t !== s.outcome_cols[ti])
+    .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0, 4);
+  $("#wiOut").innerHTML = `That happens in <b>${pct(share)}</b> of simulations. Our card’s chance of 5+ right would be <b>${pct(p5)}</b> (now ${pct(base)}).
+    <ul>${moves.map(([t, d, a]) => `<li>${esc(t)}: ${pct(a)} to advance${delta(a, a - d)}</li>`).join("")}</ul>`;
+}
+async function shareCard(s) {
+  const c = document.createElement("canvas"), W = 1200, H = 675; c.width = W; c.height = H;
+  const g = c.getContext("2d"), dark = "#141412", ink = "#f1efe8", mute = "#9a958a";
+  g.fillStyle = dark; g.fillRect(0, 0, W, H);
+  g.fillStyle = "#ff7a2e"; g.font = "700 22px 'Barlow Condensed', sans-serif"; g.fillText("PGL MAJOR SINGAPORE 2026 · PICK'EM", 48, 58);
+  g.fillStyle = ink; g.font = "800 54px 'Barlow Condensed', sans-serif"; g.fillText(`STAGE ${s.stage} · OUR CARD`, 48, 112);
+  const zones = [["3-0", "GO 3-0", "#51cf66", 2], ["3-1/3-2", "ADVANCE", "#4dabf7", 6], ["0-3", "GO 0-3", "#ff6b6b", 2]];
+  const img = src => new Promise(r => { const i = new Image(); i.onload = () => r(i); i.onerror = () => r(null); i.src = src; });
+  const x0 = [48, 420, 830], wz = [340, 380, 322];
+  for (const [zi, [slot, title, col]] of zones.entries()) {
+    const x = x0[zi], teams = s.picks[slot] || [];
+    g.fillStyle = "#1f1f1b"; g.beginPath(); g.roundRect(x, 150, wz[zi], 420, 18); g.fill();
+    g.fillStyle = col; g.fillRect(x, 150, wz[zi], 6);
+    g.fillStyle = ink; g.font = "800 34px 'Barlow Condensed', sans-serif"; g.fillText(title, x + 22, 205);
+    for (const [i, t] of teams.entries()) {
+      const y = 250 + i * 52, b = TEAM_BRANDING[t];
+      const logo = b ? await img(`team-logos/${b.asset}.webp`) : null;
+      if (logo) { g.fillStyle = b.plate === "light" ? "#f1efe8" : "#2b2a25"; g.beginPath(); g.roundRect(x + 22, y - 30, 40, 40, 8); g.fill(); g.drawImage(logo, x + 26, y - 26, 32, 32); }
+      const st = s.status !== "upcoming" ? (s.pick_status[slot] || {})[t] : null;
+      g.fillStyle = st === "miss" ? mute : ink; g.font = "600 28px system-ui, sans-serif";
+      g.fillText(`${st === "hit" ? "✓ " : st === "miss" ? "✗ " : ""}${t}`, x + 74, y);
+    }
+  }
+  g.fillStyle = mute; g.font = "500 22px system-ui, sans-serif";
+  g.fillText(`${pct(s.p_at_least_5)} chance of 5+ correct · ${s.expected_correct.toFixed(1)} right on average · simulated thousands of times`, 48, 618);
+  g.fillText("aamarnath1.github.io/cs2-major-predictor", 48, 652);
+  const a = document.createElement("a"); a.download = `singapore-stage${s.stage}-pickem.png`; a.href = c.toDataURL("image/png"); a.click();
 }
 function setOurs(s, into) { for (const [slot, code] of SLOT_DEF.map(x => [x[0], x[1]])) for (const t of s.picks[slot] || []) into[t] = code; }
 function distBars(el, dist) {
@@ -602,6 +682,45 @@ function renderBuilder(s) {
 }
 
 /* ---------------- playoffs ---------------- */
+function jsPickStatus(slot, w, l) {
+  if (slot === "3-0") return l > 0 ? "miss" : w === 3 ? "hit" : "open";
+  if (slot === "0-3") return w > 0 ? "miss" : l === 3 ? "hit" : "open";
+  if (w === 3) return l > 0 ? "hit" : "miss";
+  return l === 3 ? "miss" : "open";
+}
+function renderExperts() {
+  const sNum = D.stages.find(x => D.pundits?.stages?.[String(x.stage)] && x.picks && x.seeds_known)?.stage;
+  const cards = sNum ? D.pundits.stages[String(sNum)] : null;
+  $("#experts").hidden = !cards;
+  if (!cards) return;
+  const s = stage(sNum), rec = Object.fromEntries(s.teams.map(t => [t.team, t.record || [0, 0]]));
+  const code = { "3-0": 0, "3-1/3-2": 1, "0-3": 2 }, label = ["3-0", "Advance", "0-3"];
+  const toMap = picks => { const m = {}; for (const [k, ts] of Object.entries(picks)) for (const t of ts) m[t] = code[k]; return m; };
+  const rows = [{ source: "Our model", url: null, picks: s.picks, us: true }, ...cards].map(c => {
+    const st = Object.entries(c.picks).flatMap(([k, ts]) => ts.map(t => jsPickStatus(k, ...rec[t])));
+    return { ...c, hit: st.filter(x => x === "hit").length, miss: st.filter(x => x === "miss").length, open: st.filter(x => x === "open").length, p5: scoreSet(s, toMap(c.picks)).p5 };
+  }).sort((a, b) => b.p5 - a.p5);
+  const live = s.status !== "upcoming";
+  $("#expertsIntro").innerHTML = `${cards.length} pros and media outlets published full Stage ${sNum} cards before it started. Every card is scored on the same simulations${live ? " and the real results so far" : ""}.`;
+  $("#expertsTable").innerHTML = `<tr><th>Card</th><th>${live ? "Right · wrong · alive" : "Picks"}</th><th class="r">Chance of 5+ right${live ? " now" : ""}</th></tr>` + rows.map(r =>
+    `<tr class="${r.us ? "us" : ""}"><td>${r.url ? `<a href="${esc(r.url)}" rel="noopener">${esc(r.source)}</a>${r.via ? ` <span class="muted small">via ${esc(r.via)}</span>` : ""}` : esc(r.source)}</td>
+    <td>${live ? `<span class="score3"><span class="h">✓ ${r.hit}</span><span class="m">✗ ${r.miss}</span><span class="o">• ${r.open}</span></span>` : "10"}</td><td class="r num">${pct(r.p5)}</td></tr>`).join("");
+  const ours = toMap(s.picks), count = {};
+  for (const c of cards) { const m = toMap(c.picks); for (const t of s.outcome_cols) { count[t] ??= [0, 0, 0, 0]; count[t][m[t] ?? 3]++; } }
+  const chip = k => `<span class="slotchip ${k === 3 || k === undefined ? "kn" : "k" + k}">${k === 3 || k === undefined ? "no pick" : label[k]}</span>`;
+  const diffs = s.outcome_cols.map(t => {
+    const c = count[t], top = c.indexOf(Math.max(...c)), mine = ours[t] ?? 3;
+    return { t, c, top, mine, agree: c[mine] };
+  }).filter(d => d.top !== d.mine && d.c[d.top] >= Math.ceil(cards.length / 2)).sort((a, b) => a.agree - b.agree);
+  const byT = Object.fromEntries(s.teams.map(t => [t.team, t]));
+  $("#disagree").innerHTML = diffs.length ? diffs.map(d => {
+    const t = byT[d.t];
+    return `<div><b class="t">${teamLabel(d.t)}${t.record && live ? ` <span class="muted small">(${t.record.join("-")})</span>` : ""}</b>
+      Experts: ${chip(d.top)} on ${d.c[d.top]} of ${cards.length} cards. We say ${chip(d.mine)}, and so do ${d.agree} of ${cards.length}.<br>
+      <span class="small muted">Our model${live ? " now" : ""}: ${pct(t.p_3_0)} 3-0 · ${pct(t.p_qualify)} advance · ${pct(t.p_0_3)} 0-3</span></div>`;
+  }).join("") : `<p class="details-copy">Our card matches the experts’ most common pick for every team.</p>`;
+  $("#expertsNote").innerHTML = `Cards copied from the linked articles, published before the stage began. Only complete 10-team cards are included. The 5+ chance comes from our own simulations, which naturally favour the card built from them; the right/wrong count is the neutral scoreboard.`;
+}
 function renderPlayoffs() {
   const P = D.playoffs;
   $("#picksIntro").innerHTML = `<b>Playoffs, ${DATES[4]} at the Singapore Indoor Stadium.</b> 8 teams, single elimination, best-of-three, with a best-of-five Grand Final. The Pick'em card asks for 7 picks: 4 quarterfinals, 2 semis and the champion.`;
@@ -670,16 +789,67 @@ function renderRound1(s) {
 /* ---------------- swiss paths ---------------- */
 const COLS = [[[0, 0]], [[1, 0], [0, 1]], [[2, 0], [1, 1], [0, 2]], [[3, 0], [2, 1], [1, 2], [0, 3]], [[3, 1], [2, 2], [1, 3]], [[3, 2], [2, 3]]];
 const COLHEAD = ["Start", "Round 1", "Round 2", "Round 3", "Round 4", "Round 5"];
+function edgeFlows(v) {
+  // Chance a team wins (W) or loses (L) its match while at record w-l, from the chance of visiting each record.
+  const W = {}, L = {}, k = (w, l) => `${w}-${l}`;
+  for (let r = 0; r <= 4; r++) for (let w = Math.min(r, 2); w >= 0; w--) {
+    const l = r - w; if (l > 2) continue;
+    const lossFromUpper = w + 1 <= 2 && l - 1 >= 0 ? (L[k(w + 1, l - 1)] ?? 0) : 0;
+    W[k(w, l)] = Math.max(0, v[w + 1][l] - lossFromUpper);
+    L[k(w, l)] = Math.max(0, v[w][l] - W[k(w, l)]);
+  }
+  return { W, L };
+}
+function realPath(s, team) {
+  const rec = [[0, 0]];
+  for (const m of [...(s.matches || [])].sort((a, b) => a.round - b.round)) {
+    if (m.a !== team && m.b !== team) continue;
+    const [w, l] = rec.at(-1);
+    rec.push(m.winner === team ? [w + 1, l] : [w, l + 1]);
+  }
+  return rec;
+}
+function pathDiagram(s, team) {
+  const v = s.visits[s.outcome_cols.indexOf(team)], { W, L } = edgeFlows(v), real = realPath(s, team);
+  const onPath = new Set(real.map(([w, l]) => `${w}-${l}`)), here = real.at(-1).join("-");
+  const cw = 118, dy = 40, top = 34, X = (w, l) => 52 + (w + l) * cw, Y = (w, l) => top + (3 + l - w) * dy;
+  const maxW = 16;
+  let edges = "", nodes = "";
+  for (let w = 0; w <= 2; w++) for (let l = 0; l <= 2; l++) {
+    for (const [dw, dl, f, c] of [[1, 0, W[`${w}-${l}`], "var(--c30)"], [0, 1, L[`${w}-${l}`], "var(--c03)"]]) {
+      if (!(f > 0.004)) continue;
+      const real2 = onPath.has(`${w}-${l}`) && onPath.has(`${w + dw}-${l + dl}`);
+      edges += `<line x1="${X(w, l)}" y1="${Y(w, l)}" x2="${X(w + dw, l + dl)}" y2="${Y(w + dw, l + dl)}" stroke="${real2 ? "var(--ink)" : c}" stroke-opacity="${real2 ? .9 : .55}" stroke-width="${Math.max(1.5, maxW * f)}" stroke-linecap="round"><title>${w}-${l} → ${w + dw}-${l + dl}: ${pct(f)}</title></line>`;
+    }
+  }
+  for (let w = 0; w <= 3; w++) for (let l = 0; l <= 3; l++) {
+    if ((w === 3 && l === 3) || v[w][l] === undefined) continue;
+    const p = v[w][l], end = w === 3 || l === 3, x = X(w, l), y = Y(w, l), cur = `${w}-${l}` === here;
+    const ring = cur ? "var(--accent)" : end ? (w === 3 ? "var(--c30)" : "var(--c03)") : "var(--line-2)";
+    nodes += `<g opacity="${p < .005 && !onPath.has(`${w}-${l}`) ? .35 : 1}"><rect x="${x - 34}" y="${y - 16}" width="68" height="32" rx="9" fill="var(--paper)" stroke="${ring}" stroke-width="${cur || onPath.has(`${w}-${l}`) ? 3 : 1.5}"/>
+      <text x="${x}" y="${y - 1}" text-anchor="middle">${w}-${l}</text><text class="sub" x="${x}" y="${y + 11}" text-anchor="middle">${p > .995 ? "✓" : pct(p)}</text><title>${team} reaches ${w}-${l}: ${pct(p, 1)}</title></g>`;
+  }
+  const heads = COLHEAD.map((h, i) => `<text class="colh" x="${52 + i * cw}" y="14" text-anchor="middle">${h.toUpperCase()}</text>`).join("");
+  const width = 52 * 2 + 5 * cw, height = top + 6 * dy + 24;
+  const t = s.teams.find(x => x.team === team);
+  const status = real.length > 1 ? `${esc(team)} is ${here} after ${real.length - 1} match${real.length > 2 ? "es" : ""}.` : `${esc(team)} hasn’t played yet.`;
+  return `<p class="pathNote">${status} <b>${pct(t.p_qualify)}</b> to advance: ${pct(t.p_3_0)} to go 3-0, ${pct(t.p_0_3)} to go 0-3. Green lines are wins, red are losses, and the dark line is the real path so far.</p>
+    <svg class="pathSvg" viewBox="0 0 ${width} ${height}" role="img" aria-label="Routes through the Swiss stage for ${esc(team)}">${heads}${edges}${nodes}</svg>`;
+}
 function renderPaths(s) {
   if (!s.seeds_known || !s.visits) return;
+  if (pathTeam === null) pathTeam = s.picks?.["3-0"]?.[0] || s.outcome_cols[0];
   $("#paths > summary").textContent = `Follow a team through Stage ${s.stage} Swiss`;
   const cols = s.outcome_cols, V = s.visits, idx = Object.fromEntries(cols.map((t, i) => [t, i]));
   $("#pathTeams").innerHTML = `<button class="chip ${pathTeam ? "" : "on"}" data-t="" aria-pressed="${!pathTeam}">Most likely teams</button>` + cols.map(t => `<button class="chip ${pathTeam === t ? "on" : ""}" data-t="${esc(t)}" aria-pressed="${pathTeam === t}">${teamLabel(t)}</button>`).join("");
   document.querySelectorAll("#pathTeams .chip").forEach((c, i) => c.onclick = () => {
-    pathTeam = c.dataset.t || null;
+    pathTeam = c.dataset.t || "";
     renderPaths(s);
     $("#pathTeams").children[i].focus({ preventScroll: true });
   });
+  $(".swissWrap").classList.toggle("diagram", !!pathTeam);
+  if (pathTeam) { $("#swiss").style.display = "block"; $("#swiss").style.minWidth = "0"; $("#swiss").innerHTML = pathDiagram(s, pathTeam); return; }
+  $("#swiss").style.display = ""; $("#swiss").style.minWidth = "";
   $("#swiss").innerHTML = COLS.map((col, ci) => `<div class="col"><div class="colhead">${COLHEAD[ci]}</div>${col.map(([w, l]) => {
     const cls = w === 3 ? "adv" : l === 3 ? "out" : "";
     if (pathTeam) {
