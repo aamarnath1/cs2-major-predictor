@@ -204,11 +204,40 @@ ul.plain { margin: 0; padding-left: 18px; color: var(--ink-2); } ul.plain li { m
 footer { padding: 40px 0 70px; color: var(--mute); font-size: 13px; border-top: 1px solid var(--line); margin-top: 50px; }
 footer a { color: var(--ink-2); }
 
+/* readability additions */
+.explain { display: grid; grid-template-columns: 1.1fr 1fr; gap: 14px; margin-top: 14px; }
+.explain h3 { font: 800 20px/1.1 var(--head); text-transform: uppercase; margin: 0 0 8px; }
+.explain ol { margin: 0; padding-left: 20px; font-size: 14.5px; color: var(--ink-2); line-height: 1.5; }
+.explain ol li + li { margin-top: 4px; }
+.timeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.timeline .step { background: var(--sunk); border-radius: 10px; padding: 8px 10px; font-size: 12.5px; color: var(--ink-2); line-height: 1.35; border-top: 3px solid var(--line-2); }
+.timeline .step.now { border-top-color: var(--accent); background: var(--accent-soft); }
+.timeline .step b { display: block; font: 700 15px var(--head); text-transform: uppercase; letter-spacing: .04em; color: var(--ink); }
+.joins { display: block; font-size: 11px; font-weight: 600; color: var(--mute); line-height: 1.1; }
+.race .row { height: 36px; }
+.delta { font-size: 11.5px; font-weight: 700; white-space: nowrap; margin-left: 4px; font-family: system-ui, sans-serif; }
+.delta.up { color: var(--win-text); } .delta.down { color: var(--loss-text); }
+.race .row { grid-template-columns: minmax(105px, 155px) 1fr 82px; }
+.race .pct { display: flex; justify-content: flex-end; align-items: baseline; }
+.slot .hint { font-size: 12.5px; color: var(--ink-2); background: var(--sunk); border-radius: 8px; padding: 6px 9px; margin: -2px 0 8px; line-height: 1.4; }
+.pick .chance { font-size: 12px; color: var(--mute); text-align: right; line-height: 1.2; flex: 0 0 auto; max-width: 92px; }
+.pick .chance b { display: block; font: 700 17px var(--head); color: var(--ink); }
+.pick .why b { color: var(--ink-2); }
+.state { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; border-radius: 6px; padding: 1px 6px; margin-left: 6px; white-space: nowrap; }
+.state.hit { background: var(--c30-soft); color: var(--win-text); } .state.miss { background: var(--c03-soft); color: var(--loss-text); } .state.open { background: var(--sunk); color: var(--mute); }
+.compare { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
+.compare > div { background: var(--sunk); border-radius: 12px; padding: 10px 12px; font-size: 13px; color: var(--ink-2); }
+.compare strong { display: block; font: 800 28px/1.05 var(--head); color: var(--ink); }
+.compare .ours strong { color: var(--accent-text); }
+.tag.upset { background: var(--c03-soft); color: var(--loss-text); }
+.res.upset { color: var(--loss-text); }
 @media (max-width: 760px) {
+  .explain, .compare { grid-template-columns: 1fr; }
+  .timeline { grid-template-columns: 1fr 1fr; }
   .iconbtn, .tab, .btn, .chip { min-height: 44px; }
   .sheet, .r1, .bracket { grid-template-columns: 1fr; }
   .links { display: none; }
-  .race .row { grid-template-columns: 96px 1fr 46px; }
+  .race .row { grid-template-columns: 104px 1fr 74px; }
 }
 @media (max-width: 560px) {
   .explore, .model-steps { grid-template-columns: minmax(0, 1fr); }
@@ -241,11 +270,19 @@ footer a { color: var(--ink-2); }
 <header class="hero">
   <div class="kicker">PGL Major Singapore · Nov 24 – Dec 13</div>
   <h1>We played the Singapore Major <em>5,000</em> times</h1>
-  <p class="lede">See who could win it all, then build a Pick’em card from the simulated results.</p>
+  <p class="lede">We rate every team from thousands of past matches, play the whole tournament out 5,000 times, and turn that into title odds and a Pick’em card.</p>
   <a class="heroJump" href="#picks">Jump to our picks ↓</a>
   <div class="updated" id="updated"></div>
   <div class="heroGrid">
-    <div class="card"><div class="cardTitle">Top five title favourites</div><div class="race" id="race"></div></div>
+    <div class="card"><div class="cardTitle">Top five title favourites · chance to win the Major</div><div class="race" id="race"></div><div class="small muted" id="raceNote" style="margin-top:8px"></div></div>
+  </div>
+  <div class="explain">
+    <div class="card"><h3>How Pick’em works</h3><ol>
+      <li>Each stage has 16 teams. Win 3 matches and you move on, lose 3 and you’re out.</li>
+      <li>Before a stage starts you pick <b>2 teams to go 3-0</b>, <b>6 to advance with 3-1 or 3-2</b>, and <b>2 to go 0-3</b>.</li>
+      <li>Get <b>5 of the 10</b> right to upgrade your coin. A 3-0 team doesn’t count in the advance slots, so the favourites go in 3-0.</li>
+    </ol></div>
+    <div class="card"><h3>Who plays when</h3><div class="timeline" id="timeline"></div></div>
   </div>
 </header>
 
@@ -312,7 +349,7 @@ footer a { color: var(--ink-2); }
 <section id="trust">
   <h2>How the model works</h2>
   <ol class="model-steps">
-    <li><strong>Rate the teams</strong>Four rating systems learn from match results. We combine their estimates into one win chance for each matchup.</li>
+    <li><strong>Rate the teams</strong>Four rating systems, like chess ratings for teams, learn from match results. We combine their estimates into one win chance for each matchup.</li>
     <li><strong>Play out the Major</strong>We simulate the Swiss rounds and playoffs thousands of times. The Pick’em card aims for five or more correct picks.</li>
     <li><strong>Check against past Majors</strong>We replay completed stages and compare how many picks the model gets right against a card based on seeds.</li>
   </ol>
@@ -391,6 +428,13 @@ const splitLabels = p => {
   const left = Math.round(100 * p);
   return [`${left}%`, `${100 - left}%`];
 };
+function delta(now, before, invert = false) {
+  if (before == null || now == null) return "";
+  const d = Math.round(100 * (now - before));
+  if (Math.abs(d) < 1) return "";
+  return `<span class="delta ${(d > 0) !== invert ? "up" : "down"}" title="Change since the previous update">${d > 0 ? "▲" : "▼"}${Math.abs(d)}</span>`;
+}
+const moved = () => D.movement ? `Arrows show the change since ${esc(D.movement.generated)}, before the latest results.` : "";
 function teamLabel(team) {
   const brand = TEAM_BRANDING[team];
   if (!brand) return esc(team);
@@ -404,7 +448,7 @@ function init() {
   guide = (confirmed.find(s => s.stage === cur) || confirmed.at(-1))?.stage ?? 1;
   $("#updated").innerHTML = `Updated ${esc(D.generated)} · match history through ${esc(D.data_through)}${isLive() ? `<span class="livebadge"><i></i>Live</span>` : ""}`;
   survSel = new Set(D.major.slice(0, 3).map(r => r.team));
-  renderRace(); renderTabs(); renderStage(); renderGuide(); initH2H(); renderTrust(); renderMethod();
+  renderRace(); renderTimeline(); renderTabs(); renderStage(); renderGuide(); initH2H(); renderTrust(); renderMethod();
   $("#trophy").addEventListener("toggle", renderTrophy);
   $("#foot").innerHTML = `Data from Valve and Liquipedia (CC-BY-SA). Team marks via <a href="https://www.pglesports.com/cs2/pgl-major-singapore-2026/">PGL’s Singapore Major</a>. Unofficial fan project. <a href="https://github.com/aamarnath1/cs2-major-predictor">Source on GitHub</a> · generated ${esc(D.generated)}.`;
 }
@@ -418,7 +462,18 @@ function redraw() {
 /* ---------------- hero ---------------- */
 function renderRace() {
   const top = D.major.slice(0, 5);
-  $("#race").innerHTML = top.map(r => `<div class="row"><div class="name" title="${esc(r.team)}">${teamLabel(r.team)}</div><div class="track" aria-hidden="true"><div class="fill" style="width:${100 * r.champion}%;background:${teamColor(r.team)}"></div></div><div class="pct num">${pct(r.champion)}</div></div>`).join("");
+  const before = D.movement?.champion || {};
+  $("#race").innerHTML = top.map(r => `<div class="row"><div class="name" title="${esc(r.team)}">${teamLabel(r.team)}${r.entry !== "Stage 1" ? `<span class="joins">joins ${esc(r.entry)}</span>` : ""}</div><div class="track" aria-hidden="true"><div class="fill" style="width:${100 * r.champion}%;background:${teamColor(r.team)}"></div></div><div class="pct num">${pct(r.champion)}${delta(r.champion, before[r.team])}</div></div>`).join("");
+  $("#raceNote").innerHTML = `The strongest teams are invited straight into Stage 3, so they don’t appear in the Stage 1 picks. ${moved()}`;
+}
+function renderTimeline() {
+  const st = [
+    [1, "Stage 1", "16 teams play. Top 8 go to Stage 2."],
+    [2, "Stage 2", "8 invited teams + 8 from Stage 1. Top 8 move on."],
+    [3, "Stage 3", "8 top invites (e.g. Vitality, Spirit, MOUZ) + 8 from Stage 2."],
+    [4, "Playoffs", "Final 8, knockout. Bo3, Bo5 final, Singapore Indoor Stadium."],
+  ];
+  $("#timeline").innerHTML = st.map(([n, name, text]) => `<div class="step ${n === cur ? "now" : ""}"><b>${name}</b>${DATES[n]}<br>${text}</div>`).join("");
 }
 
 /* ---------------- tabs + cheat sheet ---------------- */
@@ -439,19 +494,21 @@ function renderTabs() {
   });
 }
 
-function reason(slot, t, s, rankQ, r1) {
+function reason(slot, t, s, rankP, r1) {
   const opp = r1 ? (r1.a === t.team ? [r1.b, r1.p_a] : [r1.a, 1 - r1.p_a]) : null;
-  const open = opp && s.status === "upcoming" ? ` Opens vs ${esc(opp[0])} (${pct(opp[1])} to win).` : "";
-  if (slot === "3-0" || slot === "0-3") {
-    return `#${rankQ} of ${s.teams.length} by chance to advance.${open}`;
-  }
-  return `${pct(t.p_qualify)} to qualify.${open}`;
+  const open = opp && s.status === "upcoming" ? ` Opens vs ${esc(opp[0])}: ${pct(opp[1])} to win.` : "";
+  const n = s.teams.length;
+  if (slot === "3-0") return `<b>#${rankP} of ${n}</b> on our ratings. Has to win three straight, and few teams are likelier to.${open}`;
+  if (slot === "0-3") return `<b>#${rankP} of ${n}</b> on our ratings. Only ${pct(t.p_qualify)} to get out of the stage at all.${open}`;
+  return `${pct(t.p_qualify)} to get through, but only ${pct(t.p_3_0)} to do it without a loss, so the advance slot fits.${open}`;
 }
 
 function renderStage() {
   if (cur === 4) return renderPlayoffs();
   const s = stage(cur), byT = Object.fromEntries(s.teams.map(t => [t.team, t]));
-  const rankQ = Object.fromEntries([...s.teams].sort((a, b) => b.p_qualify - a.p_qualify).map((t, i) => [t.team, i + 1]));
+  const power = Object.fromEntries(D.power.map(r => [r.team, r.power]));
+  const rankP = Object.fromEntries([...s.teams].sort((a, b) => (power[b.team] ?? 0) - (power[a.team] ?? 0)).map((t, i) => [t.team, i + 1]));
+  const bestAdv = Math.max(...s.teams.map(t => t.p_advance_31_32));
   const r1Of = Object.fromEntries((s.round1 || []).flatMap(m => [[m.a, m], [m.b, m]]));
   const hits = Object.values(s.pick_status || {}).flatMap(o => Object.values(o)).filter(v => v === "hit").length;
   $("#picksIntro").innerHTML = s.seeds_known
@@ -462,21 +519,41 @@ function renderStage() {
     $("#sheet").innerHTML = "";
     return;
   }
-  const notes = { preview: "Early look. Pick'em for this stage opens when the previous stage ends.", live: "Stage under way. Picks are locked: ✓ correct, ✗ wrong, • still open.", done: "Stage finished. Here's how the locked picks did.", ready: "Field confirmed. This card freezes at the scheduled first match.", "awaiting results": "The card is frozen. Waiting for results from the feed." };
+  const notes = { preview: "Early look. Pick'em for this stage opens when the previous stage ends.", live: "Stage under way. Picks are locked and marked as results come in.", done: "Stage finished. Here's how the locked picks did.", ready: "Field confirmed. This card freezes at the scheduled first match.", "awaiting results": "The card is frozen. Waiting for results from the feed." };
   $("#stageNote").innerHTML = `<div class="note">${notes[stLabel(s)]}</div>`;
-  const sym = { hit: "✓", miss: "✗", open: "•" };
+  const sym = { hit: "✓", miss: "✗", open: "" };
+  const stateText = { hit: "Correct", miss: "Wrong", open: "Still alive" };
+  const chanceText = { "3-0": "to go 3-0", "3-1/3-2": "to go 3-1/3-2", "0-3": "to go 0-3" };
+  const live = s.status !== "upcoming";
+  const before = D.movement?.qualify?.[String(s.stage)] || {};
   const cols = SLOT_DEF.map(([slot, , cls, title, sub, key]) => {
     const ps = (s.picks[slot] || []).map(t => byT[t]).filter(Boolean);
-    return `<div class="card slot ${cls}"><h3>${title}</h3><div class="sub">${sub}</div>${ps.map(t => {
-      const st = (s.pick_status[slot] || {})[t.team], rec = s.status !== "upcoming" && t.record ? ` <span class="muted small">(${t.record.join("-")})</span>` : "";
-      return `<div class="pick"><div class="top"><span class="team">${st ? `<span class="mark ${st}">${sym[st]}</span>` : ""}${teamLabel(t.team)}${rec}</span><span class="small num" title="Chance of this exact finish">${pct(t[key])}</span></div>
-        <div class="why">${s.seeds_known ? reason(slot, t, s, rankQ[t.team], r1Of[t.team]) : `${pct(t.p_in_stage)} to even reach this stage.`}</div></div>`;
+    const hint = slot === "3-1/3-2" && s.seeds_known && !live
+      ? `<div class="hint">No team is a safe bet here: the best any team has of finishing exactly 3-1 or 3-2 is ${pct(bestAdv)}. These six are the best odds available.</div>` : "";
+    return `<div class="card slot ${cls}"><h3>${title}</h3><div class="sub">${sub}</div>${hint}${ps.map(t => {
+      const st = live ? (s.pick_status[slot] || {})[t.team] : null;
+      const rec = live && t.record ? ` <span class="muted small">(${t.record.join("-")})</span>` : "";
+      return `<div class="pick"><div class="top"><span class="team">${st && sym[st] ? `<span class="mark ${st}">${sym[st]}</span>` : ""}${teamLabel(t.team)}${rec}${st ? `<span class="state ${st}">${stateText[st]}</span>` : ""}</span><span class="chance"><b class="num">${pct(t[key])}</b>${chanceText[slot]}</span></div>
+        <div class="why">${s.seeds_known ? (live ? `${pct(t.p_qualify)} to advance now${delta(t.p_qualify, before[t.team], slot === "0-3")}.` : reason(slot, t, s, rankP[t.team], r1Of[t.team])) : (t.p_in_stage > .999 ? "Invited straight into this stage." : `${pct(t.p_in_stage)} chance to get here from Stage ${s.stage - 1}.`)}</div></div>`;
     }).join("")}</div>`;
   }).join("");
   const p5 = s.p_at_least_5;
+  const all = Object.values(s.pick_status || {}).flatMap(o => Object.values(o));
+  const misses = all.filter(v => v === "miss").length, alive = all.filter(v => v === "open").length;
+  let seedP5 = null;
+  if (s.seeds_known && s.outcomes?.length) {
+    const seeds = {};
+    s.teams.forEach(t => { const c = t.seed <= 2 ? 0 : t.seed <= 8 ? 1 : t.seed >= 15 ? 2 : null; if (c !== null) seeds[t.team] = c; });
+    seedP5 = scoreSet(s, seeds).p5;
+  }
+  const compare = `<div class="compare">
+      <div class="ours"><strong class="num">${pct(p5)}</strong>Our card: chance of 5+ right${live ? " from here" : ""}</div>
+      ${seedP5 == null ? "" : `<div><strong class="num">${pct(seedP5)}</strong>Picking purely by seed${live ? " from here" : ""}</div>`}
+      <div><strong class="num">${s.expected_correct.toFixed(1)}</strong>Picks right on average, out of 10</div></div>
+      ${live ? "" : `<p class="small muted" style="margin:8px 0 0">Under 50% sounds bad, but Swiss stages have lots of near coin flips. In 11 past Major stages, the model’s card hit 5+ six times.</p>`}`;
   $("#sheet").innerHTML = `<div class="sheet">${cols}</div>
-    <div class="card verdict"><strong class="big num">${s.status === "upcoming" ? pct(p5) : `${hits}/10`}</strong>
-      <span class="ink2">${s.status === "upcoming" ? "simulated chance of getting five or more right" : `correct so far · ${pct(p5)} chance of finishing with five or more`}</span></div>
+    ${live ? `<div class="card verdict"><strong class="big num">${hits}/10</strong><span class="ink2">correct so far · ${misses} wrong · ${alive} still alive</span></div>` : ""}
+    ${compare}
     <details class="more" id="builder"><summary>Build your own picks and compare</summary><div>
       <p class="small ink2">Tap a team to cycle it through <b>3-0 → Advance → 0-3 → none</b>. Both cards are compared on the same sample of ${s.outcomes.length.toLocaleString()} simulations. The headline odds use the full run.</p>
       <div class="chips" id="chips"></div>
@@ -573,14 +650,16 @@ function renderGuide() {
 function renderRound1(s) {
   const fmt = s.stage === 3 ? "best-of-three" : "single map";
   $("#r1Title").textContent = `Stage ${s.stage} · Round 1 at a glance`;
-  $("#r1Intro").innerHTML = `Each bar shows the model’s win chances in a ${fmt}. <b>Coin flip</b> means both teams have about a 50% chance. Finished matches show the winner.`;
+  $("#r1Intro").innerHTML = `Each bar shows the model’s win chances in a ${fmt}. <b>Coin flip</b> means about 50/50, and <b>Upset alert</b> means the underdog has a 40%+ chance. Finished matches show the winner.`;
   const key = (a, b) => [a, b].sort().join("|");
   const res = Object.fromEntries((s.matches || []).filter(m => m.round === 1).map(m => [key(m.a, m.b), m.winner]));
   $("#r1").innerHTML = s.round1.map(m => {
     const fav = m.p_a >= .5 ? m.a : m.b, pf = Math.max(m.p_a, 1 - m.p_a), w = res[key(m.a, m.b)];
     const labels = splitLabels(m.p_a);
-    const tag = pf < .55 ? `<span class="tag flip">Coin flip</span>` : `<span class="tag fav">${pf < .6 ? "Slight edge" : "Favoured"}: ${esc(fav)}</span>`;
-    const result = w ? `<div class="meta"><span class="res">✓ ${esc(w)} won</span></div>`
+    const dog = fav === m.a ? m.b : m.a;
+    const tag = pf < .55 ? `<span class="tag flip">Coin flip</span>` : pf < .6 ? `<span class="tag upset">Upset alert: ${esc(dog)}</span>` : `<span class="tag fav">Favoured: ${esc(fav)}</span>`;
+    const upset = w && pf >= .55 && w !== fav;
+    const result = w ? `<div class="meta"><span class="res ${upset ? "upset" : ""}">${upset ? `${pf >= .6 ? "Upset!" : "Underdog won:"} ${esc(w)} (had a ${pct(1 - pf)} chance)` : `✓ ${esc(w)} won`}</span></div>`
       : `<div class="split" aria-hidden="true"><i style="width:${100 * m.p_a}%;background-color:${teamColor(m.a)}"></i><i class="${similarColors(m.a, m.b) ? "striped" : ""}" style="width:${100 * (1 - m.p_a)}%;background-color:${teamColor(m.b)}"></i></div>
       <div class="meta"><span class="num">${labels[0]}</span>${tag}<span class="num">${labels[1]}</span></div>`;
     return `<div class="mu"><div class="names"><span>${teamLabel(m.a)}</span><span>${teamLabel(m.b)}</span></div>
@@ -624,13 +703,14 @@ function renderOdds(s) {
   const key = ([w, l, c]) => `<span class="finish-key" style="background:${c}">${w}–${l}</span>`;
   $("#finishLegend").innerHTML = `<div><strong>Advance</strong>${recs.slice(0, 3).map(key).join("")}</div>
     <div><strong>Eliminated</strong>${recs.slice(3).map(key).join("")}</div>`;
+  const before = D.movement?.qualify?.[String(s.stage)] || {};
   const rows = s.teams.map(team => ({ ...team, finishes: V[cols.indexOf(team.team)] }))
     .sort((a, b) => b.p_qualify - a.p_qualify);
   $("#finishStage").textContent = `Stage ${s.stage}`;
   const nearHalf = rows.filter(r => r.p_qualify >= .4 && r.p_qualify <= .6).length;
-  $("#oddsIntro").textContent = nearHalf
-    ? `${nearHalf} of ${rows.length} teams have a 40–60% chance to advance. Open a row for all six finishes.`
-    : "Win three matches to advance. Lose three and you’re out. Open a row for all six finishes.";
+  $("#oddsIntro").innerHTML = (nearHalf
+    ? `${nearHalf} of ${rows.length} teams have a 40–60% chance to advance. Tap a row for the exact chance of each record. `
+    : "Win three matches to advance. Lose three and you’re out. Tap a row for the exact chance of each record. ") + moved();
   $("#oddsRows").innerHTML = rows.map(r => {
     const live = s.status !== "upcoming" && r.record ? ` <span class="muted small">(${r.record.join("–")})</span>` : "";
     const bar = recs.map(([w, l, color]) => {
@@ -643,7 +723,7 @@ function renderOdds(s) {
     }).join("");
     return `<details class="finish-row"><summary><span class="finish-name">${teamLabel(r.team)}${live}</span>
       <span class="stack" aria-hidden="true">${bar}</span>
-      <span class="finish-rate"><strong class="num">${pct(r.p_qualify)}</strong> advance</span></summary>
+      <span class="finish-rate"><strong class="num">${pct(r.p_qualify)}</strong> advance${delta(r.p_qualify, before[r.team])}</span></summary>
       <div class="finish-breakdown">${breakdown}</div></details>`;
   }).join("");
 }

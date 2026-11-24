@@ -165,6 +165,10 @@ def stage_block(s: int, st: dict, P: pd.DataFrame, per_rater: dict, major: dict,
     cutoff = PICK_CUTOFFS[s]
     locked = st["status"] != "upcoming" or bool(st["matches"]) or datetime.now(UTC) >= cutoff
     pick_names = saved_card(picks_path, cutoff) if locked and seeds_known else None
+    if pick_names is not None:  # show the Round 1 odds frozen before play, not ratings that already saw the results
+        frozen_r1 = json.loads(picks_path.read_text(encoding="utf-8")).get("round1")
+        if frozen_r1 and {(m["a"], m["b"]) for m in frozen_r1} == {(m["a"], m["b"]) for m in round1}:
+            round1 = frozen_r1
     if not locked:
         picks, _ = optimise(outcomes)
         pick_names = {LABELS[c]: [cols[t] for t in ts] for c, ts in picks.items()}
@@ -367,7 +371,32 @@ def export(m: pd.DataFrame, P: pd.DataFrame, stages: list, playoffs: dict, reach
         "sentiment": sentiment,
         "stand_ins": teams.STAND_INS,
     }
+    data["movement"] = movement_base(load(WEB / "data.json"), data)
     (WEB / "data.json").write_text(json.dumps(data))
+
+
+def snapshot(data: dict) -> dict:
+    """Odds the site shows movement for: title chances and per-stage qualify chances."""
+    return {
+        "generated": data["generated"],
+        "n_results": sum(len(s["matches"] or []) for s in data["stages"])
+        + sum(1 for v in data["playoffs"].get("slots", {}).values() if v.get("winner")),
+        "champion": {r["team"]: r["champion"] for r in data["major"]},
+        "qualify": {str(s["stage"]): {t["team"]: round(t["p_qualify"], 4) for t in s["teams"]} for s in data["stages"]},
+    }
+
+
+def movement_base(old: dict | None, new: dict) -> dict | None:
+    """Odds before the latest batch of results, so the site can show what moved.
+
+    The baseline advances only when new results arrive; reruns without new results keep it.
+    """
+    if old is None or "stages" not in old:
+        return None
+    current, previous = snapshot(new), snapshot(old)
+    if current["n_results"] > previous["n_results"]:
+        return previous
+    return old.get("movement")
 
 
 if __name__ == "__main__":
