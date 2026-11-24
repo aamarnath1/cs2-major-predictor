@@ -118,6 +118,14 @@ footer a { color: var(--ink-2); }
   <div class="kicker">Model details · for the stats-minded</div>
   <h1>How we got these numbers</h1>
   <p class="lede">The overview page gives the answers. This page shows the working: where the data comes from, how the models are built, how they were tested on matches they had never seen, and which ideas didn't pan out.</p>
+  <div class="card" style="margin-top:18px">
+    <div style="font:700 15px var(--head);letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin-bottom:8px">The short version</div>
+    <ul style="margin:0;padding-left:20px;line-height:1.55">
+      <li><b>The odds are honest.</b> When the model says 70%, teams win about 70% of the time, on matches it had never seen.</li>
+      <li><b>It beats Valve’s own ranking</b> at predicting match winners, but the four rating systems inside it are about equally good.</li>
+      <li><b>It doesn’t beat simply picking by seed in Pick’em, yet.</b> On 11 past Major stages both scored the same on average. Swiss is noisy, and 11 stages is too few to show a small edge.</li>
+    </ul>
+  </div>
   <div class="grid3" style="margin-top:22px" id="headStats"></div>
 </header>
 
@@ -302,7 +310,7 @@ function renderStatic() {
     ["ok", "No look-ahead in the match tests.", "The tuning and test windows don't overlap, same-day matches use previous-day ratings, and learned models only refit on earlier data. Pick'em cards are saved before each cutoff."],
     ["ok", "Beating Valve's ranking survives scrutiny.", "Every rater beats VRS even after correcting for six comparisons, and even against a VRS scale fitted on the test set itself."],
     ["dir", "Bo1 odds were too flat (fixed).", "The raters learn from a mix of Bo1 and Bo3 results, so their output is already close to a single-map probability. Converting it again pulled Bo1 odds toward 50%: on past Majors the model expected 40.5 correct picks and actually got 50. A walk-forward test agreed for S-tier events (raw odds better on 2026 S/A-tier Bo1s, 95% CI −0.022 to −0.007 log-loss) but not for B-tier. The Major now uses raw odds for Bo1. On the Stage 1 card this changed one pick (M80 → FaZe)."],
-    ["no", "The chance of the coin is understated.", "Past cards predicted about a 28% chance of 5+ correct but hit it in 6 of 11 stages. Treat the published coin chance as conservative until the Bo1 fix lands."],
+    ["dir", "The coin chance may be a little low.", "With the Bo1 fix, past cards expected 43.0 correct picks and got 48, and predicted 3.7 coins against 5 earned. Both gaps are about one standard deviation, which 11 stages can't tell apart from luck, so no further adjustment is applied."],
     ["meh", "Pick'em vs seeds can't be settled yet.", "11 stages with a per-stage spread of about ±2 picks can only detect a very large edge. Detecting a half-pick edge would take about 110 stages. A finer test, scoring each team's predicted finish rather than card hits, is planned."],
     ["meh", "Stand-ins and new rosters are not modelled.", "No adjustment is applied, and recent lineups aren't in the newest data. Testing an uncertainty penalty for changed lineups is on the list."],
   ];

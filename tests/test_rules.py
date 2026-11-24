@@ -73,7 +73,7 @@ def test_replay_uses_each_cached_stage_format(
     prob = pd.DataFrame(np.full((16, 16), 0.5))
     calls: list[bool] = []
 
-    def simulate(probabilities: np.ndarray, n_sims: int, seed: int, all_bo3: bool) -> np.ndarray:
+    def simulate(probabilities: np.ndarray, n_sims: int, seed: int, all_bo3: bool, p_bo1: np.ndarray | None = None) -> np.ndarray:
         calls.append(all_bo3)
         return np.tile([ADV_30] * 2 + [ADV] * 6 + [ELIM] * 6 + [ELIM_03] * 2, (n_sims, 1))
 

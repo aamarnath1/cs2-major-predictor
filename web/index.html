@@ -149,6 +149,24 @@ details.more > div { padding: 0 16px 16px; }
 
 /* swiss paths */
 .swissWrap { overflow-x: auto; }
+.tl { cursor: pointer; text-decoration: underline dotted var(--line-2); text-underline-offset: 3px; }
+button .tl, summary .tl { text-decoration: none; cursor: inherit; }
+dialog#teamCard { border: 1px solid var(--line); border-radius: 16px; background: var(--paper); color: var(--ink); width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 48px); padding: 0; box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+dialog#teamCard::backdrop { background: rgba(0,0,0,.5); }
+.tcHead { display: flex; align-items: center; gap: 12px; padding: 18px 18px 6px; }
+.tcHead h3 { font: 800 30px/1 var(--head); text-transform: uppercase; margin: 0; flex: 1; }
+.tcHead .team-logo { width: 40px; height: 40px; }
+.tcBody { padding: 4px 18px 18px; font-size: 14px; color: var(--ink-2); }
+.tcBody h4 { font: 700 13px var(--head); letter-spacing: .1em; text-transform: uppercase; color: var(--mute); margin: 16px 0 6px; }
+.tcSteps { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; text-align: center; font-size: 11.5px; }
+.tcSteps div { background: var(--sunk); border-radius: 8px; padding: 6px 2px; }
+.tcSteps b { display: block; font: 700 17px var(--head); color: var(--ink); }
+.tcRes { display: flex; flex-wrap: wrap; gap: 4px; }
+.tcRes span { font-size: 12px; border-radius: 6px; padding: 2px 7px; background: var(--sunk); }
+.tcRes .w { color: var(--win-text); } .tcRes .l { color: var(--loss-text); }
+.histLegend { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12.5px; color: var(--ink-2); margin-top: 6px; }
+.histLegend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+@media (max-width: 560px) { .tcSteps { grid-template-columns: repeat(3, 1fr); } }
 .tbl tr.us td { background: var(--accent-soft); font-weight: 700; }
 .tbl a { color: inherit; }
 .score3 { display: inline-flex; gap: 8px; font-variant-numeric: tabular-nums; }
@@ -299,6 +317,7 @@ footer a { color: var(--ink-2); }
   <div class="updated" id="updated"></div>
   <div class="heroGrid">
     <div class="card"><div class="cardTitle">Top five title favourites · chance to win the Major</div><div class="race" id="race"></div><div class="small muted" id="raceNote" style="margin-top:8px"></div></div>
+    <details class="more" id="histBox"><summary>How the title odds have moved</summary><div><div class="plot" id="hist"></div><div class="histLegend" id="histLegend"></div><p class="small muted" id="histNote"></p></div></details>
   </div>
   <div class="explain">
     <div class="card"><h3>How Pick’em works</h3><ol>
@@ -314,6 +333,7 @@ footer a { color: var(--ink-2); }
   <div class="eyebrow">Pick'em cheat sheet</div>
   <h2>Our picks</h2>
   <p class="intro" id="picksIntro"></p>
+  <p class="small muted" style="margin:-6px 0 12px">Tip: tap any team name for its card.</p>
   <div class="tabs" id="tabs" role="group" aria-label="Pick’em stage"></div>
   <div id="stageNote"></div>
   <div id="sheet"></div>
@@ -427,6 +447,7 @@ footer a { color: var(--ink-2); }
   <details class="more"><summary>What fans are talking about</summary><div class="scroll" id="crowdBox"></div></details>
 </section>
 </main>
+<dialog id="teamCard" aria-labelledby="tcName"><div class="tcHead"><span id="tcLogo"></span><h3 id="tcName"></h3><button class="iconbtn" id="tcClose" aria-label="Close">✕</button></div><div class="tcBody" id="tcBody"></div></dialog>
 <footer><div class="wrap" id="foot"></div></footer>
 
 <script src="team-branding.js"></script>
@@ -486,8 +507,8 @@ function delta(now, before, invert = false) {
 const moved = () => D.movement ? `Arrows show the change since ${esc(D.movement.generated)}, before the latest results.` : "";
 function teamLabel(team) {
   const brand = TEAM_BRANDING[team];
-  if (!brand) return esc(team);
-  return `<span class="team-logo ${brand.plate}" aria-hidden="true"><img src="team-logos/${brand.asset}.webp" width="96" height="96" alt="" loading="lazy" decoding="async"></span>${esc(team)}`;
+  if (!brand) return `<span class="tl" data-team="${esc(team)}">${esc(team)}</span>`;
+  return `<span class="team-logo ${brand.plate}" aria-hidden="true"><img src="team-logos/${brand.asset}.webp" width="96" height="96" alt="" loading="lazy" decoding="async"></span><span class="tl" data-team="${esc(team)}">${esc(team)}</span>`;
 }
 
 function init() {
@@ -498,12 +519,22 @@ function init() {
   const sc = scored();
   $("#updated").innerHTML = `Updated ${esc(D.generated)} · match history through ${esc(D.data_through)}${isLive() ? `<span class="livebadge"><i></i>Live</span>` : ""}${sc.length ? ` · <a href="#scorecard">our favourites have won ${sc.filter(e => e.favWon).length} of ${sc.length}</a>` : ""}`;
   survSel = new Set(D.major.slice(0, 3).map(r => r.team));
-  renderRace(); renderTimeline(); renderTabs(); renderExperts(); renderScorecard(); renderStage(); renderGuide(); initH2H(); renderTrust(); renderMethod();
+  renderRace(); renderTimeline(); renderTabs(); renderExperts(); renderScorecard();
+  $("#histBox").hidden = !(D.history?.length > 1);
+  $("#histBox").addEventListener("toggle", renderHistory);
+  document.addEventListener("click", e => {
+    const el = e.target.closest("[data-team]");
+    if (!el || el.closest("button, summary, select, a")) return;
+    openTeam(el.dataset.team);
+  });
+  $("#tcClose").onclick = () => $("#teamCard").close();
+  $("#teamCard").addEventListener("click", e => { if (e.target === $("#teamCard")) $("#teamCard").close(); }); renderStage(); renderGuide(); initH2H(); renderTrust(); renderMethod();
   $("#trophy").addEventListener("toggle", renderTrophy);
   $("#foot").innerHTML = `Data from Valve and Liquipedia (CC-BY-SA). Team marks via <a href="https://www.pglesports.com/cs2/pgl-major-singapore-2026/">PGL’s Singapore Major</a>. Unofficial fan project. <a href="https://github.com/aamarnath1/cs2-major-predictor">Source on GitHub</a> · generated ${esc(D.generated)}.`;
 }
 function redraw() {
   if (!D) return;
+  renderHistory();
   renderTrophy();
   renderTrust();
   if ($("#pickDist")?.open) distBars($("#dist"), stage(cur).score_dist);
@@ -515,6 +546,43 @@ function renderRace() {
   const before = D.movement?.champion || {};
   $("#race").innerHTML = top.map(r => `<div class="row"><div class="name" title="${esc(r.team)}">${teamLabel(r.team)}${r.entry !== "Stage 1" ? `<span class="joins">joins ${esc(r.entry)}</span>` : ""}</div><div class="track" aria-hidden="true"><div class="fill" style="width:${100 * r.champion}%;background:${teamColor(r.team)}"></div></div><div class="pct num">${pct(r.champion)}${delta(r.champion, before[r.team])}</div></div>`).join("");
   $("#raceNote").innerHTML = `The strongest teams are invited straight into Stage 3, so they don’t appear in the Stage 1 picks. ${moved()}`;
+}
+function renderHistory() {
+  if (!$("#histBox").open || !(D.history?.length > 1)) return;
+  const H = D.history, top = D.major.slice(0, 6).map(r => r.team), el = $("#hist");
+  const W = Math.max(el.clientWidth, 260), h = 200, L = 34, R = 12, T = 10, B = 26;
+  const max = Math.max(...H.flatMap(x => top.map(t => x.champion[t] || 0))) * 1.1 || 1;
+  const X = i => L + (W - L - R) * (H.length === 1 ? 0 : i / (H.length - 1)), Y = v => T + (h - T - B) * (1 - v / max);
+  const grid = [0, max / 2, max].map(v => `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${L - 5}" y="${Y(v) + 4}" text-anchor="end">${pct(v)}</text>`).join("");
+  const ticks = H.map((x, i) => (i === 0 || i === H.length - 1 || H.length < 7) ? `<text x="${X(i)}" y="${h - 6}" text-anchor="${i === 0 ? "start" : i === H.length - 1 ? "end" : "middle"}">${esc(x.generated.slice(5, 10))}</text>` : "").join("");
+  const lines = top.map(t => { const c = teamColor(t);
+    return `<polyline fill="none" stroke="${c}" stroke-width="2.5" points="${H.map((x, i) => `${X(i)},${Y(x.champion[t] || 0)}`).join(" ")}"/>${H.map((x, i) => `<circle cx="${X(i)}" cy="${Y(x.champion[t] || 0)}" r="3" fill="${c}"><title>${esc(t)} · ${esc(x.generated)}: ${pct(x.champion[t] || 0, 1)}</title></circle>`).join("")}`; }).join("");
+  el.innerHTML = `<svg width="${W}" height="${h}" role="img" aria-label="Title odds over time">${grid}${ticks}${lines}</svg>`;
+  $("#histLegend").innerHTML = top.map(t => `<span><i style="background:${teamColor(t)}"></i>${esc(t)} ${pct(H.at(-1).champion[t] || 0)}</span>`).join("");
+  $("#histNote").textContent = `One point per update with new results (${H.length} so far, ${H.at(-1).n_results} matches played).`;
+}
+function openTeam(team) {
+  const r = D.major.find(x => x.team === team);
+  if (!r) return;
+  const rank = D.power.findIndex(x => x.team === team) + 1;
+  const st = D.stages.find(s => s.teams.some(t => t.team === team && t.p_in_stage > .999) && s.status !== "complete")
+    || D.stages.findLast(s => s.teams.some(t => t.team === team && t.p_in_stage > .999));
+  const t = st?.teams.find(x => x.team === team);
+  const slot = st?.picks ? Object.entries(st.picks).find(([, ts]) => ts.includes(team))?.[0] : null;
+  const nm = st?.next_round?.matches.find(m => !m.winner && (m.a === team || m.b === team));
+  const steps = [["Stage 2", r.entry === "Stage 1" ? r.stage2 : r.entry === "Stage 2" ? "in" : null], ["Stage 3", r.entry === "Stage 3" ? "in" : r.stage3], ["Playoffs", r.playoffs], ["Semis", r.semis], ["Final", r.final], ["Wins it", r.champion]];
+  const si = D.stand_in_notes?.[team], sc = D.stand_in_scenario?.teams?.[team];
+  const recent = D.recent?.[team] || [];
+  $("#tcLogo").innerHTML = TEAM_BRANDING[team] ? `<span class="team-logo ${TEAM_BRANDING[team].plate}"><img src="team-logos/${TEAM_BRANDING[team].asset}.webp" width="96" height="96" alt=""></span>` : "";
+  $("#tcName").textContent = team;
+  $("#tcBody").innerHTML = `<p style="margin:0">#${rank} of ${D.power.length} on our ratings · starts in ${esc(r.entry)}${t?.seed ? ` as seed ${t.seed}` : ""}.</p>
+    ${st && t ? `<h4>Stage ${st.stage}${t.record && st.status !== "upcoming" ? ` · ${t.record.join("-")}` : ""}</h4>
+      <p style="margin:0">${pct(t.p_qualify)} to advance (${pct(t.p_3_0)} 3-0, ${pct(t.p_0_3)} 0-3).${slot ? ` On our card: <b>${slot === "3-1/3-2" ? "Advance" : slot}</b>.` : " Not on our card."}${nm ? ` Next: vs ${esc(nm.a === team ? nm.b : nm.a)}, ${pct(nm.a === team ? nm.p_a : 1 - nm.p_a)} to win (${nm.bo === 3 ? "best-of-three" : "single map"}).` : ""}</p>` : ""}
+    <h4>Chance to reach each round</h4>
+    <div class="tcSteps">${steps.map(([l, v]) => `<div><b class="num">${v == null ? "–" : v === "in" ? "Invited" : pct(v)}</b>${l}</div>`).join("")}</div>
+    ${si ? `<h4>Stand-in</h4><p style="margin:0">${esc(si)}. Our ratings can’t see lineups, so the main forecast treats them at full strength.${sc ? ` If the stand-in costs them about ${-D.stand_in_scenario.elo} rating points (a guess, not a measurement): ${pct(sc.scenario.playoffs)} to make playoffs (vs ${pct(sc.base.playoffs)}), ${pct(sc.scenario.champion, 1)} to win (vs ${pct(sc.base.champion, 1)}).` : ""}</p>` : ""}
+    ${recent.length ? `<h4>Last ${recent.length} results</h4><div class="tcRes">${recent.map(x => `<span class="${x.won ? "w" : "l"}" title="${esc(x.date)}">${x.won ? "W" : "L"} ${esc(x.opp)}</span>`).join("")}</div>` : ""}`;
+  $("#teamCard").showModal();
 }
 function renderTimeline() {
   const st = [
@@ -600,7 +668,7 @@ function renderStage() {
       <div class="ours"><strong class="num">${pct(p5)}</strong>Our card: chance of 5+ right${live ? " from here" : ""}</div>
       ${seedP5 == null ? "" : `<div><strong class="num">${pct(seedP5)}</strong>Picking purely by seed${live ? " from here" : ""}</div>`}
       <div><strong class="num">${s.expected_correct.toFixed(1)}</strong>Picks right on average, out of 10</div></div>
-      ${live ? "" : `<p class="small muted" style="margin:8px 0 0">Under 50% sounds bad, but Swiss stages have lots of near coin flips. In 11 past Major stages, the model’s card hit 5+ six times.</p>`}`;
+      ${live ? "" : `<p class="small muted" style="margin:8px 0 0">Under 50% sounds bad, but Swiss stages have lots of near coin flips. ${D.replay ? `In ${D.replay.summary["Ensemble (optimised)"].stages} past Major stages, the model’s card hit 5+ ${D.replay.summary["Ensemble (optimised)"].coins} times.` : ""}</p>`}`;
   $("#sheet").innerHTML = `<div class="sheet">${cols}</div>
     ${live ? `<div class="card verdict"><strong class="big num">${hits}/10</strong><span class="ink2">correct so far · ${misses} wrong · ${alive} still alive</span></div>` : ""}
     ${compare}
@@ -1066,7 +1134,7 @@ function renderMethod() {
   renderEvidence();
   const si = Object.keys(D.stand_ins || {}).join(", ");
   $("#caveats").innerHTML = [
-    `<b>Stand-ins aren't modelled</b> (${esc(si)}). The model treats these teams at full strength, so weigh them yourself.`,
+    `<b>Stand-ins aren't modelled</b> (${esc(si)}). The model treats these teams at full strength. Tap a team for a what-if with a stand-in penalty.`,
     `<b>New rosters are uncertain.</b> GOSH (s1mple's team) has a short track record.`,
     `<b>No player form or map vetoes.</b> The model sees results, not who played well or why.`,
     `<b>Stage 2 and 3 picks are previews</b> until their fields are confirmed. Everything reruns as results come in.`,
