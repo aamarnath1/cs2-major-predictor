@@ -21,7 +21,7 @@ from cs2p.features import build_features, ts_win_prob, TS
 from cs2p.live import fetch_state, fixed_rounds, major_matches, simulate_major
 from cs2p.pickem import NEED, optimise, score
 from cs2p.playoffs import all_brackets, optimise_bracket, playoff_challenge
-from cs2p.swiss import ADV, ADV_30, ELIM_03, simulate
+from cs2p.swiss import ADV, ADV_30, ELIM_03, simulate, upcoming_round
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "outputs"
@@ -144,7 +144,7 @@ def stage_block(s: int, st: dict, P: pd.DataFrame, per_rater: dict, major: dict,
     """Odds, picks and (once started) live pick scoring for one Swiss stage."""
     seeds_known = st["seeds"] is not None
     fr: list = []
-    visits, round1 = None, []
+    visits, round1, next_round = None, [], None
     if seeds_known:
         cols = st["seeds"]
         fr = fixed_rounds(cols, st["matches"])
@@ -154,6 +154,15 @@ def stage_block(s: int, st: dict, P: pd.DataFrame, per_rater: dict, major: dict,
         outcomes = simulate(Ps, n_sims=n_stage, seed=s, all_bo3=(s == 3), fixed_rounds=fr, visits=visits, p_bo1=Ps)
         in_stage = np.ones(len(cols))
         round1 = [{"a": cols[i], "b": cols[i + 8], "p_a": float(Ps[i, i + 8])} for i in range(8)]
+        nxt = upcoming_round(16, fr)
+        if nxt is not None:
+            rnd, pairs = nxt
+            next_round = {"round": rnd, "matches": [
+                {"a": cols[a], "b": cols[b], "p_a": round(float(Ps[a, b]), 4),
+                 "winner": cols[w] if w is not None else None,
+                 "bo": 3 if s == 3 or 2 in (len([m for m in st["matches"] if m["winner"] == cols[a]]),
+                                            len([m for m in st["matches"] if cols[a] in (m["a"], m["b"]) and m["winner"] != cols[a]])) else 1}
+                for a, b, w in pairs]}
     else:  # field not set yet: preview from full-Major sims (teams may or may not reach this stage)
         cm = major["codes"][s]
         keep = (cm >= 0).mean(0) > 0
@@ -226,8 +235,10 @@ def stage_block(s: int, st: dict, P: pd.DataFrame, per_rater: dict, major: dict,
         "expected_correct": float(sc.mean()) if sc is not None else None,
         "score_dist": dist.tolist() if dist is not None else None, "pick_status": status,
         "matches": st["matches"],
-        "round1": round1, "visits": visits.round(4).tolist() if visits is not None else None,
-        "outcome_cols": cols, "outcomes": outcomes[:3000].tolist(),
+        "round1": round1, "next_round": next_round,
+        "visits": visits.round(4).tolist() if visits is not None else None,
+        # one string per simulation, one digit per team: outcome code + 1 (0 = not in this stage)
+        "outcome_cols": cols, "outcomes": ["".join(str(c + 1) for c in row) for row in outcomes[:3000]],
     }
 
 
@@ -364,7 +375,7 @@ def export(m: pd.DataFrame, P: pd.DataFrame, stages: list, playoffs: dict, reach
         "major": [{"team": t, "entry": entry[t], **{k: round(float(v), 4) for k, v in r.items()}}
                   for t, r in reach.iterrows()],
         "power": [{"team": t, "power": round(float(v), 4), "entry": entry[t]} for t, v in power_rating(P).items()],
-        "matchups": {"teams": list(P.index), "p": P.values.tolist()},
+        "matchups": {"teams": list(P.index), "p": P.values.round(4).tolist()},
         "zoo": load(PROC / "zoo.json"),
         "replay": load(PROC / "replay.json"),
         "maps": load(PROC / "map_backtest.json"),
@@ -373,7 +384,41 @@ def export(m: pd.DataFrame, P: pd.DataFrame, stages: list, playoffs: dict, reach
         "pundits": load(OUT.parent / "research" / "pundits.json"),
     }
     data["movement"] = movement_base(load(WEB / "data.json"), data)
-    (WEB / "data.json").write_text(json.dumps(data))
+    data["forecasts"] = update_forecast_log(stages)
+    (WEB / "data.json").write_text(json.dumps(data, separators=(",", ":")))
+    from cs2p.og_image import render  # Pillow is only needed when publishing
+    render(data)
+
+
+def update_forecast_log(stages: list) -> list[dict]:
+    """Record each Swiss match's odds before it is played, then attach results.
+
+    Only forecasts logged before the result are kept, so the site's scorecard is out-of-sample.
+    Round 1 uses the odds frozen with each stage's Pick'em card.
+    """
+    path = OUT / "forecast_log.json"
+    log = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
+    key = lambda e: (e["stage"], e["round"], frozenset((e["a"], e["b"])))
+    have = {key(e) for e in log}
+    now = datetime.now(UTC).isoformat(timespec="minutes")
+    for b in stages:
+        if not b["seeds_known"]:
+            continue
+        candidates = []
+        card = OUT / f"picks_stage{b['stage']}.json"
+        frozen = json.loads(card.read_text(encoding="utf-8")) if card.exists() else {}
+        if frozen.get("round1") and frozen.get("field") == b["outcome_cols"]:
+            candidates += [(1, m, frozen["frozen_at"]) for m in frozen["round1"]]
+        if b["next_round"]:
+            candidates += [(b["next_round"]["round"], m, now) for m in b["next_round"]["matches"] if m["winner"] is None]
+        for rnd, m, made in candidates:
+            e = {"stage": b["stage"], "round": rnd, "a": m["a"], "b": m["b"], "p_a": round(m["p_a"], 4), "made_at": made}
+            if key(e) not in have:
+                log.append(e)
+                have.add(key(e))
+    path.write_text(json.dumps(log, indent=1), encoding="utf-8")
+    results = {(b["stage"], m["round"], frozenset((m["a"], m["b"]))): m["winner"] for b in stages for m in (b["matches"] or [])}
+    return [{**e, "winner": results.get(key(e))} for e in log]
 
 
 def snapshot(data: dict) -> dict:

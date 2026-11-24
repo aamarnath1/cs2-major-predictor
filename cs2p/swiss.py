@@ -98,6 +98,55 @@ def _with_fixed(default: list[tuple[int, int, None]], fixed: list[tuple[int, int
     return list(fixed) + [p for p in default if p[0] not in busy and p[1] not in busy]
 
 
+def _next_pairs(wins, losses, opps, played, alive, rnd, fixed) -> list:
+    """Pairings for the next round: fixed (already known) matches first, then Valve's rules for the rest."""
+    busy = {t for a, b, _ in fixed for t in (a, b)}
+    buch = [sum(wins[o] - losses[o] for o in opps[t]) for t in range(len(wins))]
+    pairs = []
+    for rec in sorted({(wins[t], losses[t]) for t in alive}, reverse=True):
+        group = sorted((t for t in alive if (wins[t], losses[t]) == rec),
+                       key=lambda t: (-buch[t], t))
+        got = _late_pair(group, played, fixed) if rnd >= 3 and len(group) == 6 else None
+        if got is None:
+            remaining = [t for t in group if t not in busy]
+            got = _pair(remaining, played) or [
+                (remaining[i], remaining[-1 - i]) for i in range(len(remaining) // 2)
+            ]
+        pairs += [(a, b, None) for a, b in got]
+    return list(fixed) + pairs
+
+
+def upcoming_round(n: int, fixed_rounds: FixedRounds) -> tuple[int, list[tuple[int, int, int | None]]] | None:
+    """The first round that isn't finished, with every pairing (played ones carry their winner).
+
+    Pairings follow from the completed rounds, so they are known before Liquipedia lists them.
+    Returns None when the stage is over or no complete round exists yet beyond round 1 seeding.
+    """
+    wins, losses = [0] * n, [0] * n
+    opps: list[list[int]] = [[] for _ in range(n)]
+    played: set = set()
+    rnd = 0
+    for fixtures in fixed_rounds:
+        alive = [t for t in range(n) if wins[t] < 3 and losses[t] < 3]
+        if len(fixtures) * 2 < len(alive):
+            break  # this round is still in progress
+        for a, b, w in fixtures:
+            l = b if w == a else a
+            wins[w] += 1
+            losses[l] += 1
+            opps[a].append(b)
+            opps[b].append(a)
+            played |= {(a, b), (b, a)}
+        rnd += 1
+    alive = [t for t in range(n) if wins[t] < 3 and losses[t] < 3]
+    if not alive:
+        return None
+    partial = fixed_rounds[rnd] if rnd < len(fixed_rounds) else []
+    if rnd == 0:
+        return 1, _with_fixed([(i, i + n // 2, None) for i in range(n // 2)], partial)
+    return rnd + 1, _next_pairs(wins, losses, opps, played, alive, rnd, partial)
+
+
 def run_stage(
     p_bo3: np.ndarray,
     rng: np.random.Generator,
@@ -146,20 +195,7 @@ def run_stage(
         if not alive:
             break
         fixed = fixed_rounds[rnd] if rnd < len(fixed_rounds) else []
-        busy = {t for a, b, _ in fixed for t in (a, b)}
-        buch = [sum(wins[o] - losses[o] for o in opps[t]) for t in range(n)]
-        pairs = []
-        for rec in sorted({(wins[t], losses[t]) for t in alive}, reverse=True):
-            group = sorted((t for t in alive if (wins[t], losses[t]) == rec),
-                           key=lambda t: (-buch[t], t))
-            got = _late_pair(group, played, fixed) if rnd >= 3 and len(group) == 6 else None
-            if got is None:
-                remaining = [t for t in group if t not in busy]
-                got = _pair(remaining, played) or [
-                    (remaining[i], remaining[-1 - i]) for i in range(len(remaining) // 2)
-                ]
-            pairs += [(a, b, None) for a, b in got]
-        pairs = list(fixed) + pairs
+        pairs = _next_pairs(wins, losses, opps, played, alive, rnd, fixed)
     buch = [sum(wins[o] - losses[o] for o in opps[t]) for t in range(n)]
     codes = np.empty(n, dtype=np.int8)
     for t in range(n):
