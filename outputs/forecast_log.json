@@ -1,0 +1,130 @@
+[
+ {
+  "stage": 1,
+  "round": 1,
+  "a": "Ninjas in Pyjamas",
+  "b": "M80",
+  "p_a": 0.5062,
+  "made_at": "2026-11-24T01:04:54.986106+00:00"
+ },
+ {
+  "stage": 1,
+  "round": 1,
+  "a": "PARIVISION",
+  "b": "DENDELE",
+  "p_a": 0.5521,
+  "made_at": "2026-11-24T01:04:54.986106+00:00"
+ },
+ {
+  "stage": 1,
+  "round": 1,
+  "a": "HEROIC",
+  "b": "Imperial",
+  "p_a": 0.5556,
+  "made_at": "2026-11-24T01:04:54.986106+00:00"
+ },
+ {
+  "stage": 1,
+  "round": 1,
+  "a": "FaZe",
+  "b": "Wildcard",
+  "p_a": 0.5885,
+  "made_at": "2026-11-24T01:04:54.986106+00:00"
+ },
+ {
+  "stage": 1,
+  "round": 1,
+  "a": "Liquid",
+  "b": "GOSH",
+  "p_a": 0.6931,
+  "made_at": "2026-11-24T01:04:54.986106+00:00"
+ },
+ {
+  "stage": 1,
+  "round": 1,
+  "a": "Eternal Fire",
+  "b": "FlyQuest",
+  "p_a": 0.4523,
+  "made_at": "2026-11-24T01:04:54.986106+00:00"
+ },
+ {
+  "stage": 1,
+  "round": 1,
+  "a": "100 Thieves",
+  "b": "Chinggis Warriors",
+  "p_a": 0.7455,
+  "made_at": "2026-11-24T01:04:54.986106+00:00"
+ },
+ {
+  "stage": 1,
+  "round": 1,
+  "a": "9z",
+  "b": "Lynn Vision",
+  "p_a": 0.5064,
+  "made_at": "2026-11-24T01:04:54.986106+00:00"
+ },
+ {
+  "stage": 1,
+  "round": 3,
+  "a": "Ninjas in Pyjamas",
+  "b": "Liquid",
+  "p_a": 0.4995,
+  "made_at": "2026-11-24T20:00+00:00"
+ },
+ {
+  "stage": 1,
+  "round": 3,
+  "a": "Imperial",
+  "b": "FlyQuest",
+  "p_a": 0.4609,
+  "made_at": "2026-11-24T20:00+00:00"
+ },
+ {
+  "stage": 1,
+  "round": 3,
+  "a": "Wildcard",
+  "b": "Lynn Vision",
+  "p_a": 0.4129,
+  "made_at": "2026-11-24T20:00+00:00"
+ },
+ {
+  "stage": 1,
+  "round": 3,
+  "a": "PARIVISION",
+  "b": "FaZe",
+  "p_a": 0.5453,
+  "made_at": "2026-11-24T20:00+00:00"
+ },
+ {
+  "stage": 1,
+  "round": 3,
+  "a": "HEROIC",
+  "b": "M80",
+  "p_a": 0.5464,
+  "made_at": "2026-11-24T20:00+00:00"
+ },
+ {
+  "stage": 1,
+  "round": 3,
+  "a": "Eternal Fire",
+  "b": "100 Thieves",
+  "p_a": 0.4106,
+  "made_at": "2026-11-24T20:00+00:00"
+ },
+ {
+  "stage": 1,
+  "round": 3,
+  "a": "GOSH",
+  "b": "Chinggis Warriors",
+  "p_a": 0.4874,
+  "made_at": "2026-11-24T20:00+00:00"
+ },
+ {
+  "stage": 1,
+  "round": 3,
+  "a": "9z",
+  "b": "DENDELE",
+  "p_a": 0.5238,
+  "made_at": "2026-11-24T20:00+00:00"
+ }
+]

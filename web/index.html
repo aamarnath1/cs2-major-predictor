@@ -8,7 +8,11 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="We played the CS2 Singapore Major 5,000 times">
 <meta property="og:description" content="Title odds, Pick'em cheat sheet, every Swiss path, updated live during the event.">
-<meta name="twitter:card" content="summary">
+<meta property="og:image" content="https://aamarnath1.github.io/cs2-major-predictor/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://aamarnath1.github.io/cs2-major-predictor/">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -62,6 +66,7 @@ h1 { font: 800 clamp(40px, 7.4vw, 76px)/.95 var(--head); text-transform: upperca
 h1 em { font-style: normal; color: var(--accent-text); }
 .lede { font-size: 18px; color: var(--ink-2); max-width: 640px; margin: 0; }
 .updated { margin-top: 10px; font-size: 13px; color: var(--mute); }
+.updated a { color: var(--accent-text); font-weight: 600; }
 .livebadge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--accent-text); background: var(--accent-soft); border-radius: 999px; padding: 2px 10px; margin-left: 6px; }
 .livebadge i { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: pulse 1.6s infinite; }
 @keyframes pulse { 50% { opacity: .3; } }
@@ -328,6 +333,11 @@ footer a { color: var(--ink-2); }
   <div class="eyebrow">Stage guide</div>
   <div id="guideTabs" class="tabs" role="group" aria-label="Stage guide"></div>
   <p class="intro" id="guideNote"></p>
+  <div id="nextRound" hidden>
+  <h2 id="nrTitle"></h2>
+  <p class="intro" id="nrIntro"></p>
+  <div class="card"><div class="r1" id="nr"></div></div>
+  </div>
   <div id="round1">
   <h2 id="r1Title">Round 1 at a glance</h2>
   <p class="intro" id="r1Intro"></p>
@@ -376,6 +386,13 @@ footer a { color: var(--ink-2); }
 </section>
 
 <section id="trust">
+  <div id="scorecard" hidden>
+  <div class="eyebrow">Live report card</div>
+  <h2>How the model is doing this Major</h2>
+  <p class="intro" id="scIntro"></p>
+  <div class="compare" id="scTiles" style="margin-bottom:14px"></div>
+  <details class="more"><summary>Every forecast we logged before the match</summary><div class="scroll" id="scTable"></div></details>
+  </div>
   <h2>How the model works</h2>
   <ol class="model-steps">
     <li><strong>Rate the teams</strong>Four rating systems, like chess ratings for teams, learn from match results. We combine their estimates into one win chance for each matchup.</li>
@@ -435,7 +452,10 @@ let D, cur = 1, guide = 1, pathTeam = null, survSel = new Set(), mine = {};
 fetch("data.json").then(r => {
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
   return r.json();
-}).then(d => { D = d; init(); }).catch(() => {
+}).then(d => {
+  for (const st of d.stages) st.outcomes = (st.outcomes || []).map(r => typeof r === "string" ? Array.from(r, c => +c - 1) : r);
+  D = d; init();
+}).catch(() => {
   $("#loadError").textContent = "The forecast data couldn’t load. Refresh the page to try again.";
   $("#loadError").hidden = false;
 });
@@ -475,9 +495,10 @@ function init() {
   cur = active ? active.stage : 4;
   const confirmed = D.stages.filter(s => s.seeds_known && s.round1?.length);
   guide = (confirmed.find(s => s.stage === cur) || confirmed.at(-1))?.stage ?? 1;
-  $("#updated").innerHTML = `Updated ${esc(D.generated)} · match history through ${esc(D.data_through)}${isLive() ? `<span class="livebadge"><i></i>Live</span>` : ""}`;
+  const sc = scored();
+  $("#updated").innerHTML = `Updated ${esc(D.generated)} · match history through ${esc(D.data_through)}${isLive() ? `<span class="livebadge"><i></i>Live</span>` : ""}${sc.length ? ` · <a href="#scorecard">our favourites have won ${sc.filter(e => e.favWon).length} of ${sc.length}</a>` : ""}`;
   survSel = new Set(D.major.slice(0, 3).map(r => r.team));
-  renderRace(); renderTimeline(); renderTabs(); renderExperts(); renderStage(); renderGuide(); initH2H(); renderTrust(); renderMethod();
+  renderRace(); renderTimeline(); renderTabs(); renderExperts(); renderScorecard(); renderStage(); renderGuide(); initH2H(); renderTrust(); renderMethod();
   $("#trophy").addEventListener("toggle", renderTrophy);
   $("#foot").innerHTML = `Data from Valve and Liquipedia (CC-BY-SA). Team marks via <a href="https://www.pglesports.com/cs2/pgl-major-singapore-2026/">PGL’s Singapore Major</a>. Unofficial fan project. <a href="https://github.com/aamarnath1/cs2-major-predictor">Source on GitHub</a> · generated ${esc(D.generated)}.`;
 }
@@ -763,9 +784,49 @@ function renderGuide() {
     renderGuide();
     $(`#guideTabs [data-guide="${guide}"]`).focus({ preventScroll: true });
   });
-  renderRound1(s); renderPaths(s); renderOdds(s);
+  renderNextRound(s); renderRound1(s); renderPaths(s); renderOdds(s);
 }
 
+function matchRow(m, fmt) {
+  const fav = m.p_a >= .5 ? m.a : m.b, pf = Math.max(m.p_a, 1 - m.p_a), w = m.winner, dog = fav === m.a ? m.b : m.a;
+  const labels = splitLabels(m.p_a);
+  const tag = pf < .55 ? `<span class="tag flip">Coin flip</span>` : pf < .6 ? `<span class="tag upset">Upset alert: ${esc(dog)}</span>` : `<span class="tag fav">Favoured: ${esc(fav)}</span>`;
+  const upset = w && pf >= .55 && w !== fav;
+  const result = w ? `<div class="meta"><span class="res ${upset ? "upset" : ""}">${upset ? `${pf >= .6 ? "Upset!" : "Underdog won:"} ${esc(w)} (had a ${pct(1 - pf)} chance)` : `✓ ${esc(w)} won`}</span>${fmt ? `<span class="small muted">${fmt}</span>` : ""}</div>`
+    : `<div class="split" aria-hidden="true"><i style="width:${100 * m.p_a}%;background-color:${teamColor(m.a)}"></i><i class="${similarColors(m.a, m.b) ? "striped" : ""}" style="width:${100 * (1 - m.p_a)}%;background-color:${teamColor(m.b)}"></i></div>
+      <div class="meta"><span class="num">${labels[0]}</span>${tag}<span class="num">${labels[1]}</span></div>${fmt ? `<div class="small muted" style="text-align:center">${fmt}</div>` : ""}`;
+  return `<div class="mu"><div class="names"><span>${teamLabel(m.a)}</span><span>${teamLabel(m.b)}</span></div>${result}</div>`;
+}
+function renderNextRound(s) {
+  const n = s.next_round;
+  $("#nextRound").hidden = !n || n.round === 1;
+  if (!n || n.round === 1) return;
+  const recOf = t => s.teams.find(x => x.team === t)?.record || [0, 0];
+  $("#nrTitle").textContent = `Stage ${s.stage} · Round ${n.round}: who plays next`;
+  const played = n.matches.filter(m => m.winner).length;
+  $("#nrIntro").innerHTML = `Swiss pairings follow from the results so far (teams with the same record meet, then the tiebreaker decides who plays whom), so we know them before they’re announced. ${played ? `${played} of ${n.matches.length} already played.` : ""} Win chances use our ratings as of this update.`;
+  $("#nr").innerHTML = n.matches.map(m => matchRow(m, `${recOf(m.a).join("-")} vs ${recOf(m.b).join("-")} · ${m.bo === 3 ? "best-of-three" : "single map"}${m.bo === 3 ? (recOf(m.a)[0] === 2 ? " · winner advances" : recOf(m.a)[1] === 2 ? " · loser is out" : "") : ""}`)).join("");
+}
+function scored() {
+  return (D.forecasts || []).filter(e => e.winner).map(e => {
+    const p = e.winner === e.a ? e.p_a : 1 - e.p_a;
+    return { ...e, pw: p, favWon: p > .5 || (p === .5), ll: -Math.log(Math.max(p, 1e-6)) };
+  });
+}
+function renderScorecard() {
+  const sc = scored();
+  $("#scorecard").hidden = !sc.length;
+  if (!sc.length) return;
+  const n = sc.length, fav = sc.filter(e => e.favWon).length, ll = sc.reduce((a, e) => a + e.ll, 0) / n;
+  const brier = sc.reduce((a, e) => a + (1 - e.pw) ** 2, 0) / n;
+  const expFav = sc.reduce((a, e) => a + Math.max(e.p_a, 1 - e.p_a), 0);
+  $("#scIntro").innerHTML = `We save every match forecast before it’s played, so these numbers can’t be fixed after the fact. ${n} matches scored so far. With this few matches, expect swings: a handful of upsets moves everything.`;
+  $("#scTiles").innerHTML = `<div class="ours"><strong class="num">${fav}/${n}</strong>Favourites won (we expected about ${expFav.toFixed(1)})</div>
+    <div><strong class="num">${ll.toFixed(3)}</strong>Our log-loss. A 50/50 guess scores 0.693; lower is better</div>
+    <div><strong class="num">${brier.toFixed(3)}</strong>Brier score. A 50/50 guess scores 0.250; lower is better</div>`;
+  $("#scTable").innerHTML = `<table class="tbl"><tr><th>Stage · round</th><th>Match</th><th class="r">Our odds</th><th>Winner</th></tr>${sc.map(e =>
+    `<tr><td>S${e.stage} · R${e.round}</td><td>${esc(e.a)} vs ${esc(e.b)}</td><td class="r num">${pct(e.p_a)} / ${pct(1 - e.p_a)}</td><td class="${e.favWon ? "" : "res upset"}">${esc(e.winner)}${e.favWon ? "" : " (upset)"}</td></tr>`).join("")}</table>`;
+}
 function renderRound1(s) {
   const fmt = s.stage === 3 ? "best-of-three" : "single map";
   $("#r1Title").textContent = `Stage ${s.stage} · Round 1 at a glance`;
