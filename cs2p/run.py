@@ -370,6 +370,7 @@ def export(m: pd.DataFrame, P: pd.DataFrame, stages: list, playoffs: dict, reach
         "maps": load(PROC / "map_backtest.json"),
         "sentiment": sentiment,
         "stand_ins": teams.STAND_INS,
+        "pundits": load(OUT.parent / "research" / "pundits.json"),
     }
     data["movement"] = movement_base(load(WEB / "data.json"), data)
     (WEB / "data.json").write_text(json.dumps(data))
