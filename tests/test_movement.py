@@ -22,3 +22,14 @@ def test_baseline_advances_only_with_new_results():
 
 def test_no_previous_file():
     assert movement_base(None, data(0, 0.2)) is None
+
+
+def test_shift_teams_keeps_matrix_consistent():
+    import numpy as np
+    import pandas as pd
+
+    from cs2p.run import shift_teams
+    P = pd.DataFrame([[0.5, 0.6, 0.7], [0.4, 0.5, 0.55], [0.3, 0.45, 0.5]], index=list("ABC"), columns=list("ABC"))
+    Q = shift_teams(P, ["A"], -50)
+    assert np.allclose(Q.values + Q.values.T, 1)
+    assert Q.loc["A", "B"] < P.loc["A", "B"] and Q.loc["B", "C"] == P.loc["B", "C"]

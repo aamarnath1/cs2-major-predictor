@@ -54,3 +54,12 @@ STAND_INS = {
     "Astralis": 1,  # jabbi out, Anlelele in
     "9z": 1,  # meyern out, history in
 }
+
+STAND_IN_NOTES = {
+    "Vitality": "jL out, apEX in",
+    "Legacy": "n1ssim out, ksloks in",
+    "FUT": "cmtry out, SunPayus in",
+    "Astralis": "jabbi out, Anlelele in",
+    "9z": "meyern out, history in",
+}
+

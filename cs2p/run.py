@@ -344,7 +344,7 @@ def main(n_stage: int = 20_000, n_major: int = 5_000) -> None:
     reach = reach_table(major)
     reach.to_csv(OUT / "major_odds.csv", index_label="team")
     P.to_csv(OUT / "matchups.csv")
-    export(m, P, stages, playoffs, reach)
+    export(m, P, stages, playoffs, reach, stand_in_scenario(P, state, n_major, reach))
 
     for b in stages:
         summary = (f"P(>=5)={b['p_at_least_5']:.3f} exp={b['expected_correct']:.2f} picks={b['picks']}"
@@ -353,7 +353,33 @@ def main(n_stage: int = 20_000, n_major: int = 5_000) -> None:
     print(reach.head(8).round(3).to_string())
 
 
-def export(m: pd.DataFrame, P: pd.DataFrame, stages: list, playoffs: dict, reach: pd.DataFrame) -> None:
+STAND_IN_ELO = -50  # scenario only: no per-match lineup data exists to estimate the real effect
+
+
+def shift_teams(P: pd.DataFrame, team_names: list[str], elo: float) -> pd.DataFrame:
+    """Move the listed teams' strength by `elo` points (logit scale), keeping P + P.T = 1."""
+    d = pd.Series(0.0, index=P.index)
+    d[[t for t in team_names if t in d.index]] = elo * np.log(10) / 400
+    L = logit(P.values.clip(1e-6, 1 - 1e-6)) + d.values[:, None] - d.values[None, :]
+    Q = 1 / (1 + np.exp(-L))
+    np.fill_diagonal(Q, 0.5)
+    return pd.DataFrame(Q, index=P.index, columns=P.columns)
+
+
+def stand_in_scenario(P: pd.DataFrame, state: dict, n_major: int, reach: pd.DataFrame) -> dict | None:
+    """Odds for teams playing with a stand-in if the stand-in costs them STAND_IN_ELO rating points."""
+    names = [t for t in teams.STAND_INS if t in P.index]
+    if not names:
+        return None
+    alt = reach_table(simulate_major(shift_teams(P, names, STAND_IN_ELO), state, n_major, seed=2))
+    cols = ["stage2", "stage3", "playoffs", "champion"]
+    return {"elo": STAND_IN_ELO, "teams": {t: {"base": {c: round(float(reach.loc[t, c]), 4) for c in cols},
+                                               "scenario": {c: round(float(alt.loc[t, c]), 4) for c in cols}}
+                                           for t in names}}
+
+
+def export(m: pd.DataFrame, P: pd.DataFrame, stages: list, playoffs: dict, reach: pd.DataFrame,
+           stand_ins: dict | None = None) -> None:
     """Write everything the static site needs into web/data.json."""
     WEB.mkdir(exist_ok=True)
 
@@ -381,13 +407,43 @@ def export(m: pd.DataFrame, P: pd.DataFrame, stages: list, playoffs: dict, reach
         "maps": load(PROC / "map_backtest.json"),
         "sentiment": sentiment,
         "stand_ins": teams.STAND_INS,
+        "stand_in_scenario": stand_ins,
+        "stand_in_notes": teams.STAND_IN_NOTES,
+        "recent": recent_results(m),
         "pundits": load(OUT.parent / "research" / "pundits.json"),
     }
     data["movement"] = movement_base(load(WEB / "data.json"), data)
     data["forecasts"] = update_forecast_log(stages)
+    data["history"] = update_odds_history(data)
     (WEB / "data.json").write_text(json.dumps(data, separators=(",", ":")))
     from cs2p.og_image import render  # Pillow is only needed when publishing
     render(data)
+
+
+def recent_results(m: pd.DataFrame, n: int = 8) -> dict[str, list[dict]]:
+    """Each Major team's last n results (most recent first), opponents in display names where known."""
+    display = {v: d for d, v in ALL_TEAMS}
+    out = {}
+    for d, v in ALL_TEAMS:
+        rows = m[(m.winner == v) | (m.loser == v)].tail(n).iloc[::-1]
+        out[d] = [{"date": str(r.date.date()), "opp": display.get(r.loser if r.winner == v else r.winner,
+                                                                      r.loser if r.winner == v else r.winner),
+                   "won": bool(r.winner == v)} for r in rows.itertuples()]
+    return out
+
+
+def update_odds_history(data: dict) -> list[dict]:
+    """Title odds after each refresh: one point per new batch of results (or per day without results)."""
+    path = OUT / "odds_history.json"
+    hist = json.loads(path.read_text(encoding="utf-8")) if path.exists() else []
+    snap = snapshot(data)
+    point = {"generated": snap["generated"], "n_results": snap["n_results"], "champion": snap["champion"]}
+    if hist and hist[-1]["n_results"] == point["n_results"] and hist[-1]["generated"][:10] == point["generated"][:10]:
+        hist[-1] = point
+    else:
+        hist.append(point)
+    path.write_text(json.dumps(hist, indent=1), encoding="utf-8")
+    return hist
 
 
 def update_forecast_log(stages: list) -> list[dict]:

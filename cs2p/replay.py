@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 
 from cs2p.elo import PROC, load_matches
-from cs2p.pickem import NEED, optimise
+from cs2p.pickem import NEED, optimise, score
 from cs2p.run import RATERS, matchup_matrix
 from cs2p.swiss import ADV, ADV_30, ELIM, ELIM_03, simulate
 
@@ -71,11 +71,13 @@ def main(n_sims: int = 10_000) -> None:
         res = {"event": st["event"], "stage": st["stage"], "start": str(start.date()),
                "format": match_format}
         for name, Pm in strategies.items():
-            out = simulate(Pm.values, n_sims=n_sims, seed=11, all_bo3=match_format == "all_bo3")
+            # raw odds for Bo1 as in production (run.stage_block)
+            out = simulate(Pm.values, n_sims=n_sims, seed=11, all_bo3=match_format == "all_bo3", p_bo1=Pm.values)
             picks, (p5, _) = optimise(out)
             res[name] = correct(picks, actual)
             if name.startswith("Ensemble"):
                 res["model_p5"] = p5
+                res["model_expected"] = float(score(out, picks).mean())
                 res["picks"] = {str(c): [teams[i]["name"] for i in ts] for c, ts in picks.items()}
         res["Seed baseline"] = correct(seed_picks(), actual)
         rows.append(res)
@@ -92,7 +94,15 @@ def main(n_sims: int = 10_000) -> None:
     paired = {"mean_diff": float(d.mean()), "ci": [float(np.percentile(boot, 2.5)), float(np.percentile(boot, 97.5))],
               "wins": int((d > 0).sum()), "ties": int((d == 0).sum()), "losses": int((d < 0).sum())}
     print("ensemble vs seeds:", paired)
-    (PROC / "replay.json").write_text(json.dumps({"stages": rows, "summary": summary, "vs_seed": paired},
+    # Calibration of the Pick'em forecasts themselves: expected vs actual correct, and P(5+) vs hits.
+    exp, p5 = df["model_expected"].to_numpy(), df["model_p5"].to_numpy()
+    act = df["Ensemble (optimised)"].to_numpy()
+    sd_correct = float(np.sqrt(len(df)) * 1.5)  # rough: per-stage SD of correct picks is about 1.5
+    calibration = {"expected": float(exp.sum()), "actual": int(act.sum()), "sd_approx": sd_correct,
+                   "p5_expected_hits": float(p5.sum()), "p5_actual_hits": int((act >= NEED).sum()),
+                   "p5_sd": float(np.sqrt((p5 * (1 - p5)).sum()))}
+    print("calibration:", calibration)
+    (PROC / "replay.json").write_text(json.dumps({"stages": rows, "summary": summary, "vs_seed": paired, "calibration": calibration},
                                                  indent=2, default=str))
 
 
