@@ -689,7 +689,7 @@ function jsPickStatus(slot, w, l) {
   return l === 3 ? "miss" : "open";
 }
 function renderExperts() {
-  const sNum = D.stages.find(x => D.pundits?.stages?.[String(x.stage)] && x.picks && x.seeds_known)?.stage;
+  const sNum = D.stages.findLast(x => D.pundits?.stages?.[String(x.stage)] && x.picks && x.seeds_known)?.stage;
   const cards = sNum ? D.pundits.stages[String(sNum)] : null;
   $("#experts").hidden = !cards;
   if (!cards) return;

@@ -4,6 +4,7 @@ from pathlib import Path
 from cs2p import teams
 
 FIELDS = {"1": {d for d, _ in teams.STAGE1}}
+ALL = {d for d, _ in teams.STAGE1 + teams.STAGE2_INVITES + teams.STAGE3_INVITES}
 
 
 def test_pundit_cards_are_valid():
@@ -16,4 +17,5 @@ def test_pundit_cards_are_valid():
             assert len(set(chosen)) == 10, card["source"]
             if stage in FIELDS:
                 assert set(chosen) <= FIELDS[stage], (card["source"], set(chosen) - FIELDS[stage])
+            assert set(chosen) <= ALL, (card["source"], set(chosen) - ALL)  # spelling matches the site
             assert card["url"].startswith("https://")
