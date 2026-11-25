@@ -39,6 +39,14 @@ extends coverage outside the VRS history and supplies tournament results. The si
 and [PGL's Singapore format](https://www.pglesports.com/cs2/pgl-major-singapore-2026/).
 Once a stage reaches its scheduled opener, the report scores only a card saved beforehand.
 
+[Polymarket](https://polymarket.com)'s public match prices appear next to our odds for comparison
+only; they do not feed the model. For a match that has started, the site uses the last price
+before the scheduled start. On Stage 1's first 22 priced matches the market's log-loss was 0.78
+against the model's 0.65, and blending the two made forecasts worse. Roster news in
+[`research/roster_flags.json`](research/roster_flags.json) is shown on team cards without
+changing odds, because adjusting for roster changes did not improve past forecasts
+(`python -m cs2p.roster_research`).
+
 ### What we learned
 
 The four-rater ensemble beat a tuned VRS baseline on 560 historical matches between top-rated

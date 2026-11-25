@@ -411,6 +411,8 @@ def export(m: pd.DataFrame, P: pd.DataFrame, stages: list, playoffs: dict, reach
         "stand_in_notes": teams.STAND_IN_NOTES,
         "recent": recent_results(m),
         "pundits": load(OUT.parent / "research" / "pundits.json"),
+        "roster_flags": load(OUT.parent / "research" / "roster_flags.json"),
+        "market": market_odds(),
     }
     data["movement"] = movement_base(load(WEB / "data.json"), data)
     data["forecasts"] = update_forecast_log(stages)
@@ -418,6 +420,16 @@ def export(m: pd.DataFrame, P: pd.DataFrame, stages: list, playoffs: dict, reach
     (WEB / "data.json").write_text(json.dumps(data, separators=(",", ":")))
     from cs2p.og_image import render  # Pillow is only needed when publishing
     render(data, WEB / "og.png")
+
+
+def market_odds() -> list[dict]:
+    """Polymarket prices for Swiss matches, for comparison only: they do not feed the model."""
+    from cs2p.market import fetch_market_odds
+    try:
+        return fetch_market_odds([d for d, _ in ALL_TEAMS], OUT / "market_odds.json")
+    except Exception as exc:  # the report must publish even if the market feed changes shape
+        print(f"market: prices skipped ({exc.__class__.__name__}: {exc})")
+        return []
 
 
 def recent_results(m: pd.DataFrame, n: int = 8) -> dict[str, list[dict]]:
