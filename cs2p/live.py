@@ -55,6 +55,20 @@ def fetch_state(max_age_h: float = 0.25) -> dict[int, dict]:
              "b": DISPLAY.get(m["team2"].casefold()), "winner": DISPLAY.get(m["winner"].casefold())}
             for m in st["matches"]
         ]
+        if n > 1 and state[n - 1]["status"] == "complete":
+            # Seeding follows from the rulebook once the previous stage ends, so we don't wait for Liquipedia.
+            derived = next_stage_seeds(n, state[n - 1])
+            if confirmed is None:
+                confirmed = derived
+            elif confirmed != derived:
+                try:
+                    fixed_rounds(confirmed, matches)
+                    print(f"WARNING: Stage {n} seeding on Liquipedia differs from the rulebook order; "
+                          f"using Liquipedia.\n  Liquipedia: {confirmed}\n  Rulebook:   {derived}")
+                except ValueError:
+                    print(f"WARNING: Stage {n} seeding on Liquipedia doesn't match its own Round 1; "
+                          f"using the rulebook order instead: {derived}")
+                    confirmed = derived
         try:
             if confirmed is not None:
                 fixed_rounds(confirmed, matches)
@@ -80,6 +94,24 @@ def fetch_state(max_age_h: float = 0.25) -> dict[int, dict]:
                     "start_date": st["start_date"]}
     state["playoffs"] = parse_playoffs(pages[PLAYOFF_PAGE]["content"] or "", tmap, lp)
     return state
+
+
+def next_stage_seeds(n: int, previous: dict) -> list[str]:
+    """Stage n seeds: invites 1-8 in VRS order, then the previous stage's qualifiers 9-16
+    by record, then Buchholz (sum of opponents' W-L), then their seed in that stage."""
+    seeds, matches = previous["seeds"], previous["matches"]
+    rec = {t: [0, 0] for t in seeds}
+    opps = {t: [] for t in seeds}
+    for m in matches:
+        loser = m["b"] if m["winner"] == m["a"] else m["a"]
+        rec[m["winner"]][0] += 1
+        rec[loser][1] += 1
+        opps[m["a"]].append(m["b"])
+        opps[m["b"]].append(m["a"])
+    buch = {t: sum(rec[o][0] - rec[o][1] for o in opps[t]) for t in seeds}
+    qualifiers = sorted((t for t in seeds if rec[t][0] == 3),
+                        key=lambda t: (-(rec[t][0] - rec[t][1]), -buch[t], seeds.index(t)))
+    return [d for d, _ in INVITES[n]] + qualifiers
 
 
 def parse_playoffs(text: str, tmap: dict, lp: dict) -> dict:
