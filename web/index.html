@@ -71,6 +71,27 @@ h1 em { font-style: normal; color: var(--accent-text); }
 .livebadge i { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: pulse 1.6s infinite; }
 @keyframes pulse { 50% { opacity: .3; } }
 .heroGrid { margin-top: 22px; }
+.since { margin-top: 16px; border-color: var(--accent); }
+#more > .intro { margin-bottom: 6px; }
+details.xp { margin-top: 12px; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); box-shadow: var(--shadow); }
+details.xp > summary { cursor: pointer; list-style: none; display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; padding: 16px 18px; }
+details.xp > summary::-webkit-details-marker { display: none; }
+details.xp > summary b { font: 800 22px/1.1 var(--head); text-transform: uppercase; color: var(--ink); }
+details.xp > summary span { grid-column: 1; font-size: 14px; color: var(--mute); }
+details.xp > summary::after { content: "+"; grid-row: 1 / span 2; grid-column: 2; align-self: center; font-size: 24px; color: var(--mute); }
+details.xp[open] > summary::after { content: "–"; }
+details.xp > section { padding: 0 18px 18px; }
+details.xp > section > .eyebrow:first-child, details.xp > section > h2:first-of-type { display: none; }
+details#round1 > summary { cursor: pointer; list-style: none; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+details#round1 > summary::-webkit-details-marker { display: none; }
+details#round1:not([open]) > summary::after { content: "Show +"; font-size: 14px; color: var(--mute); white-space: nowrap; }
+.sinceHead { display: flex; align-items: flex-start; gap: 10px; }
+.sinceHead .cardTitle { flex: 1; color: var(--accent-text); }
+.sinceCols { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 6px 22px; font-size: 14px; color: var(--ink-2); }
+.sinceCols h4 { font: 700 12.5px var(--head); letter-spacing: .1em; text-transform: uppercase; color: var(--mute); margin: 4px 0 6px; }
+.sinceCols ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
+.sinceCols li { line-height: 1.4; }
+.sinceCols .hit { color: var(--win-text); font-weight: 700; } .sinceCols .miss { color: var(--loss-text); font-weight: 700; }
 .card { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 18px; box-shadow: var(--shadow); }
 .cardTitle { font: 700 15px var(--head); letter-spacing: .08em; text-transform: uppercase; color: var(--mute); margin: 0 0 10px; }
 .race .row { display: grid; grid-template-columns: minmax(105px, 155px) 1fr 46px; align-items: center; gap: 10px; height: 29px; }
@@ -302,7 +323,7 @@ footer a { color: var(--ink-2); }
 <a class="skip-link" href="#report">Skip to the report</a>
 <nav aria-label="Report sections"><div class="wrap">
   <div class="brand">SGP<b>/</b>Major Sim</div>
-  <div class="links"><a href="#picks">Pick'em</a><a href="#experts">Vs experts</a><a href="#stageGuide">Stage guide</a><a href="#odds">Stage finishes</a><a href="#explore">Explore</a><a href="#trust">How it works</a></div>
+  <div class="links"><a href="#picks">Pick'em</a><a href="#stageGuide">Matches</a><a href="#scorecard">Report card</a><a href="#more">Explore</a><a href="#trust">How it works</a></div>
   <a href="model.html" class="pageLink">Model details →</a>
   <button class="iconbtn" id="theme" aria-label="Toggle light or dark theme">◐ Theme</button>
 </div></nav>
@@ -315,8 +336,9 @@ footer a { color: var(--ink-2); }
   <p class="lede">We rate every team from thousands of past matches, play the whole tournament out 5,000 times, and turn that into title odds and a Pick’em card.</p>
   <a class="heroJump" href="#picks">Jump to our picks ↓</a>
   <div class="updated" id="updated"></div>
+  <div class="card since" id="since" hidden aria-labelledby="sinceTitle"><div class="sinceHead"><div class="cardTitle" id="sinceTitle"></div><button class="iconbtn" id="sinceClose" aria-label="Dismiss">✕</button></div><div class="sinceCols" id="sinceBody"></div></div>
   <div class="heroGrid">
-    <div class="card"><div class="cardTitle">Top five title favourites · chance to win the Major</div><div class="race" id="race"></div><div class="small muted" id="raceNote" style="margin-top:8px"></div></div>
+    <div class="card"><div class="cardTitle" id="raceTitle">Top five title favourites · chance to win the Major</div><div class="race" id="race"></div><div class="small muted" id="raceNote" style="margin-top:8px"></div></div>
     <details class="more" id="histBox"><summary>How the title odds have moved</summary><div><div class="plot" id="hist"></div><div class="histLegend" id="histLegend"></div><p class="small muted" id="histNote"></p></div></details>
   </div>
   <div class="explain">
@@ -339,15 +361,6 @@ footer a { color: var(--ink-2); }
   <div id="sheet"></div>
 </section>
 
-<section id="experts" hidden>
-  <div class="eyebrow">Model vs experts</div>
-  <h2>How our card stacks up</h2>
-  <p class="intro" id="expertsIntro"></p>
-  <div class="card scroll"><table class="tbl" id="expertsTable"></table></div>
-  <h3 style="margin:22px 0 10px">Where we disagree</h3>
-  <div class="disagree" id="disagree"></div>
-  <p class="small muted" id="expertsNote" style="margin-top:12px"></p>
-</section>
 
 <section id="stageGuide">
   <div class="eyebrow">Stage guide</div>
@@ -358,13 +371,40 @@ footer a { color: var(--ink-2); }
   <p class="intro" id="nrIntro"></p>
   <div class="card"><div class="r1" id="nr"></div></div>
   </div>
-  <div id="round1">
-  <h2 id="r1Title">Round 1 at a glance</h2>
+  <details id="round1" open>
+  <summary><h2 id="r1Title">Round 1 at a glance</h2></summary>
   <p class="intro" id="r1Intro"></p>
   <div class="card"><div class="r1" id="r1"></div></div>
-  </div>
+  </details>
 </section>
 
+
+
+
+<section id="scorecard" hidden>
+  <div class="eyebrow">Live report card</div>
+  <h2>How the model is doing this Major</h2>
+  <p class="intro" id="scIntro"></p>
+  <div class="compare" id="scTiles" style="margin-bottom:14px"></div>
+  <details class="more"><summary>Every forecast we logged before the match</summary><div class="scroll" id="scTable"></div></details>
+  </section>
+
+<section id="more">
+  <div class="eyebrow">Go deeper</div>
+  <h2>Explore more</h2>
+  <p class="intro">Everything else, folded away. Open any panel.</p>
+<details class="xp" id="xpExperts"><summary><b>Model vs experts</b><span>How our card compares with the Pick’em cards pros and media published</span></summary>
+<section id="experts">
+  <div class="eyebrow">Model vs experts</div>
+  <h2>How our card stacks up</h2>
+  <p class="intro" id="expertsIntro"></p>
+  <div class="card scroll"><table class="tbl" id="expertsTable"></table></div>
+  <h3 style="margin:22px 0 10px">Where we disagree</h3>
+  <div class="disagree" id="disagree"></div>
+  <p class="small muted" id="expertsNote" style="margin-top:12px"></p>
+</section>
+</details>
+<details class="xp" id="xpOdds"><summary><b>How every team finishes</b><span>Each team’s chance of 3-0, advancing or 0-3 in the stage</span></summary>
 <section id="odds">
   <div class="eyebrow" id="finishStage"></div>
   <h2>How every team finishes</h2>
@@ -374,11 +414,12 @@ footer a { color: var(--ink-2); }
     <div id="oddsRows"></div>
   </div>
 </section>
-
+</details>
+<details class="xp" id="xpExplore"><summary><b>Routes, trophy odds and head-to-head</b><span>Follow a team through Swiss, compare title paths, or pit two teams against each other</span></summary>
 <section id="explore">
   <h2>Explore the matchups and paths</h2>
   <div class="explore">
-    <details class="more" id="paths" open>
+    <details class="more" id="paths">
       <summary>Follow a team through Swiss</summary>
       <div>
         <p class="details-copy">Pick a team to see every route through the stage. Thicker lines are likelier routes, and the solid outline marks where the team has really been.</p>
@@ -404,15 +445,9 @@ footer a { color: var(--ink-2); }
     </details>
   </div>
 </section>
-
+</details>
+<details class="xp" id="xpTrust"><summary><b>How the model works</b><span>The three steps, and whether it beat the seeds at past Majors</span></summary>
 <section id="trust">
-  <div id="scorecard" hidden>
-  <div class="eyebrow">Live report card</div>
-  <h2>How the model is doing this Major</h2>
-  <p class="intro" id="scIntro"></p>
-  <div class="compare" id="scTiles" style="margin-bottom:14px"></div>
-  <details class="more"><summary>Every forecast we logged before the match</summary><div class="scroll" id="scTable"></div></details>
-  </div>
   <h2>How the model works</h2>
   <ol class="model-steps">
     <li><strong>Rate the teams</strong>Four rating systems, like chess ratings for teams, learn from match results. We combine their estimates into one win chance for each matchup.</li>
@@ -429,7 +464,8 @@ footer a { color: var(--ink-2); }
   </div>
   <details class="more" id="evidence"><summary>See the replay and match benchmark numbers</summary><div id="evidenceBody"></div></details>
 </section>
-
+</details>
+<details class="xp" id="xpMethod"><summary><b>Research details</b><span>Assumptions, model comparison and experiments</span></summary>
 <section id="method">
   <h2>Research details</h2>
   <details class="more"><summary>Model assumptions and limits</summary><div><ul class="plain" id="caveats"></ul><ul class="plain">
@@ -445,6 +481,8 @@ footer a { color: var(--ink-2); }
     <a href="https://github.com/aamarnath1/cs2-major-predictor/blob/78d5642/outputs/bo1_singapore_stage1.json">See the frozen Round 1 forecasts</a>
   </div></details>
   <details class="more"><summary>What fans are talking about</summary><div class="scroll" id="crowdBox"></div></details>
+</section>
+</details>
 </section>
 </main>
 <dialog id="teamCard" aria-labelledby="tcName"><div class="tcHead"><span id="tcLogo"></span><h3 id="tcName"></h3><button class="iconbtn" id="tcClose" aria-label="Close">✕</button></div><div class="tcBody" id="tcBody"></div></dialog>
@@ -519,7 +557,9 @@ function init() {
   const sc = scored();
   $("#updated").innerHTML = `Updated ${esc(D.generated)} · match history through ${esc(D.data_through)}${isLive() ? `<span class="livebadge"><i></i>Live</span>` : ""}${sc.length ? ` · <a href="#scorecard">our favourites have won ${sc.filter(e => e.favWon).length} of ${sc.length}</a>` : ""}`;
   survSel = new Set(D.major.slice(0, 3).map(r => r.team));
-  renderRace(); renderTimeline(); renderTabs(); renderExperts(); renderScorecard();
+  document.addEventListener("click", e => { const a = e.target.closest('a[href^="#"]'); if (a) openTo(a.getAttribute("href")); });
+  document.querySelectorAll("details.xp").forEach(d => d.addEventListener("toggle", () => d.open && redraw()));
+  renderSince(); renderRace(); renderTimeline(); renderTabs(); renderExperts(); renderScorecard();
   $("#histBox").hidden = !(D.history?.length > 1);
   $("#histBox").addEventListener("toggle", renderHistory);
   document.addEventListener("click", e => {
@@ -530,7 +570,19 @@ function init() {
   $("#tcClose").onclick = () => $("#teamCard").close();
   $("#teamCard").addEventListener("click", e => { if (e.target === $("#teamCard")) $("#teamCard").close(); }); renderStage(); renderGuide(); initH2H(); renderTrust(); renderMethod();
   $("#trophy").addEventListener("toggle", renderTrophy);
+  syncPanels();
+  if (location.hash && openTo(location.hash)) $(location.hash).scrollIntoView();
   $("#foot").innerHTML = `Data from Valve and Liquipedia (CC-BY-SA). Team marks via <a href="https://www.pglesports.com/cs2/pgl-major-singapore-2026/">PGL’s Singapore Major</a>. Unofficial fan project. <a href="https://github.com/aamarnath1/cs2-major-predictor">Source on GitHub</a> · generated ${esc(D.generated)}.`;
+}
+function openTo(hash) {  // open any folded panels around an in-page link target
+  let t = null;
+  try { t = document.querySelector(hash); } catch { return false; }
+  for (let d = t?.closest("details"); d; d = d.parentElement.closest("details")) d.open = true;
+  return !!t;
+}
+function syncPanels() {
+  $("#xpExperts").hidden = !D.pundits || $("#experts").hidden;
+  $("#experts").hidden = false;
 }
 function redraw() {
   if (!D) return;
@@ -540,12 +592,77 @@ function redraw() {
   if ($("#pickDist")?.open) distBars($("#dist"), stage(cur).score_dist);
 }
 
+/* ---------------- since your last visit ---------------- */
+const VISIT_KEY = "lastVisit";
+function playedMatches() {
+  const out = [];
+  for (const s of D.stages) for (const m of s.matches || [])
+    out.push({ key: `${s.stage}|${m.round}|${m.a}|${m.b}`, stage: s.stage, round: m.round, a: m.a, b: m.b, winner: m.winner });
+  for (const [slot, m] of Object.entries(D.playoffs?.slots || {}))
+    if (m.winner) out.push({ key: `P|${slot}|${m.a}|${m.b}`, stage: "P", round: slot, a: m.a, b: m.b, winner: m.winner });
+  return out;
+}
+function pickStatuses() {  // "stage|slot|team" -> hit / miss / open
+  const o = {};
+  for (const s of D.stages) for (const [slot, ts] of Object.entries(s.pick_status || {}))
+    for (const [t, v] of Object.entries(ts)) o[`${s.stage}|${slot}|${t}`] = v;
+  (D.playoffs?.picks || []).forEach((t, i) => { o[`P|${i}|${t}`] = D.playoffs.pick_status?.[i] || "open"; });
+  return o;
+}
+function saveVisit() {
+  try { localStorage.setItem(VISIT_KEY, JSON.stringify({ generated: D.generated, seen: playedMatches().map(m => m.key),
+    champion: Object.fromEntries(D.major.map(r => [r.team, r.champion])), status: pickStatuses() })); } catch {}
+}
+function renderSince() {
+  let last = null;
+  try { last = JSON.parse(localStorage.getItem(VISIT_KEY)); } catch {}
+  const all = playedMatches();
+  let seen, before, title;
+  if (last?.seen) {  // returning visitor: everything since they last had the page open
+    if (last.generated === D.generated) return;
+    seen = new Set(last.seen); before = last; title = `Since your last visit · update of ${last.generated}`;
+  } else if (D.movement) {  // first visit: the latest batch of results
+    const n = all.length - D.movement.n_results;
+    seen = new Set(all.slice(0, Math.max(0, all.length - Math.max(0, n))).map(m => m.key));
+    before = { champion: D.movement.champion, status: {} }; title = "Latest results";
+  } else return;
+  const fresh = all.filter(m => !seen.has(m.key));
+  const swings = D.major.map(r => ({ team: r.team, now: r.champion, was: before.champion?.[r.team] }))
+    .filter(x => x.was != null && Math.abs(x.now - x.was) >= .01).sort((a, b) => Math.abs(b.now - b.was) - Math.abs(a.now - a.was)).slice(0, 4);
+  const playedNow = new Set(fresh.flatMap(m => [`${m.stage}|${m.a}`, `${m.stage}|${m.b}`]));
+  const slotName = { "3-0": "3-0", "3-1/3-2": "advance", "0-3": "0-3" }, poName = i => i < 4 ? "quarter-final" : i < 6 ? "semi-final" : "champion";
+  const picks = Object.entries(pickStatuses()).filter(([k, v]) => {
+    const [st, , t] = k.split("|");
+    return v !== "open" && v !== (before.status?.[k] ?? (playedNow.has(`${st}|${t}`) ? "open" : v));
+  }).map(([k, v]) => { const [st, slot, t] = k.split("|"); return { st, t, v, label: st === "P" ? poName(+slot) : slotName[slot] }; });
+  if (!fresh.length && !swings.length && !picks.length) return;
+  const fc = Object.fromEntries((D.forecasts || []).map(e => [`${e.stage}|${e.round}|${[e.a, e.b].sort().join("|")}`, e]));
+  const where = m => m.stage === "P" ? { R1: "Quarter-final", R2: "Semi-final", R3: "Grand Final" }[m.round.slice(0, 2)] : `S${m.stage} R${m.round}`;
+  const line = m => {
+    const loser = m.winner === m.a ? m.b : m.a, e = fc[`${m.stage}|${m.round}|${[m.a, m.b].sort().join("|")}`];
+    const pw = e ? (m.winner === e.a ? e.p_a : 1 - e.p_a) : null;
+    return `<li><span class="muted small">${where(m)}</span> ${teamLabel(m.winner)} beat ${esc(loser)}${pw != null && pw < .45 ? ` <span class="res upset">${pw < .4 ? "upset" : "underdog"}, we gave them ${pct(pw)}</span>` : ""}</li>`;
+  };
+  const cap = innerWidth < 560 ? 4 : 6, shown = fresh.slice(-cap).reverse();
+  $("#sinceTitle").textContent = title;
+  $("#sinceBody").innerHTML = (fresh.length ? `<div><h4>${fresh.length} new result${fresh.length > 1 ? "s" : ""}</h4><ul>${shown.map(line).join("")}${fresh.length > cap ? `<li class="muted small">and ${fresh.length - cap} more</li>` : ""}</ul></div>` : "")
+    + (picks.length ? `<div><h4>Our picks</h4><ul>${picks.map(x => `<li><span class="${x.v}">${x.v === "hit" ? "✓ Right" : "✗ Wrong"}</span> ${teamLabel(x.t)} <span class="muted small">(${x.st === "P" ? "playoff" : `Stage ${x.st}`} ${x.label} pick)</span></li>`).join("")}</ul></div>` : "")
+    + (swings.length ? `<div><h4>Biggest moves in title odds</h4><ul>${swings.map(x => `<li>${teamLabel(x.team)} ${pct(x.was)} → <b>${pct(x.now)}</b></li>`).join("")}</ul></div>` : "");
+  $("#since").hidden = false;
+  $("#sinceClose").onclick = () => { $("#since").hidden = true; saveVisit(); };
+}
+addEventListener("pagehide", () => D && saveVisit());
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden" && D) saveVisit(); });
+
 /* ---------------- hero ---------------- */
 function renderRace() {
-  const top = D.major.slice(0, 5);
+  const top = D.major.filter(r => r.champion > 0).slice(0, 5);  // eliminated teams drop off
   const before = D.movement?.champion || {};
+  $("#raceTitle").textContent = top.length === 1 && top[0].champion > .999 ? "Major champion"
+    : `${top.length === 5 ? "Top five title favourites" : "Teams still in the hunt"} · chance to win the Major`;
   $("#race").innerHTML = top.map(r => `<div class="row"><div class="name" title="${esc(r.team)}">${teamLabel(r.team)}${r.entry !== "Stage 1" ? `<span class="joins">joins ${esc(r.entry)}</span>` : ""}</div><div class="track" aria-hidden="true"><div class="fill" style="width:${100 * r.champion}%;background:${teamColor(r.team)}"></div></div><div class="pct num">${pct(r.champion)}${delta(r.champion, before[r.team])}</div></div>`).join("");
-  $("#raceNote").innerHTML = `The strongest teams are invited straight into Stage 3, so they don’t appear in the Stage 1 picks. ${moved()}`;
+  const act = D.stages.find(s => s.status !== "complete")?.stage;
+  $("#raceNote").innerHTML = `${act < 3 ? `The strongest teams are invited straight into Stage 3, so they don’t appear in the Stage ${act} picks. ` : ""}${moved()}`;
 }
 function renderHistory() {
   if (!$("#histBox").open || !(D.history?.length > 1)) return;
@@ -853,6 +970,8 @@ function renderGuide() {
     $(`#guideTabs [data-guide="${guide}"]`).focus({ preventScroll: true });
   });
   renderNextRound(s); renderRound1(s); renderPaths(s); renderOdds(s);
+  $("#round1").open = $("#nextRound").hidden;
+  $("#xpOdds").hidden = $("#odds").hidden;
 }
 
 function matchRow(m, fmt) {

@@ -44,7 +44,7 @@ def render(data: dict, out: Path = WEB / "og.png") -> Path:
     # left: title odds
     d.rounded_rectangle((48, 160, 548, 560), 18, fill=PANEL)
     d.text((72, 180), "CHANCE TO WIN IT ALL", font=font(24), fill=MUTE)
-    top = data["major"][:5]
+    top = [r for r in data["major"] if r["champion"] > 0][:5]  # eliminated teams drop off
     best = max(r["champion"] for r in top) or 1
     for i, r in enumerate(top):
         y = 232 + i * 62
@@ -53,8 +53,9 @@ def render(data: dict, out: Path = WEB / "og.png") -> Path:
         lg = logo(asset, 36) if asset else None
         if lg:
             img.paste(lg, (72, y - 4), lg)
-        d.text((120, y), r["team"], font=font(28), fill=INK)
-        d.rounded_rectangle((300, y + 6, 300 + int(160 * r["champion"] / best), y + 26), 5, fill=color)
+        name_font = font(28) if d.textlength(r["team"], font=font(28)) <= 196 else font(22)
+        d.text((120, y + (0 if name_font.size == 28 else 4)), r["team"], font=name_font, fill=INK)
+        d.rounded_rectangle((322, y + 6, 322 + max(4, int(138 * r["champion"] / best)), y + 26), 5, fill=color)
         d.text((470, y), f"{round(100 * r['champion'])}%", font=font(28), fill=INK)
 
     # right: the current stage card
@@ -70,6 +71,19 @@ def render(data: dict, out: Path = WEB / "og.png") -> Path:
             status = (st.get("pick_status") or {}).get(slot, {})
             y = draw_names(d, names, status, 622, y + 38, 1130) + 18
         d.text((604, 520), f"{round(100 * st['p_at_least_5'])}% chance of 5+ correct", font=font(24), fill=ACCENT)
+    elif data["playoffs"].get("picks"):
+        po = data["playoffs"]
+        d.rounded_rectangle((580, 160, 1152, 560), 18, fill=PANEL)
+        d.text((604, 180), "PLAYOFF PICK'EM BRACKET", font=font(24), fill=MUTE)
+        rounds = [("QUARTER-FINALS", "#4dabf7", slice(0, 4)), ("SEMI-FINALS", "#51cf66", slice(4, 6)), ("CHAMPION", ACCENT, slice(6, 7))]
+        y = 224
+        for label, color, sl in rounds:
+            d.rectangle((604, y + 4, 610, y + 30), fill=color)
+            d.text((622, y), label, font=font(26), fill=INK)
+            names, status = po["picks"][sl], po.get("pick_status", [])[sl]
+            y = draw_names(d, names, dict(zip(names, status)), 622, y + 38, 1130) + 18
+        if po.get("p_playoff_challenges") is not None:
+            d.text((604, 520), f"{round(100 * po['p_playoff_challenges'])}% chance to pass the playoff challenge", font=font(24), fill=ACCENT)
 
     d.text((48, 580), f"Updated {data['generated']} · aamarnath1.github.io/cs2-major-predictor", font=font(22), fill=MUTE)
     img.save(out, optimize=True)

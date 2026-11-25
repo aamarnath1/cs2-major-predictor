@@ -417,7 +417,7 @@ def export(m: pd.DataFrame, P: pd.DataFrame, stages: list, playoffs: dict, reach
     data["history"] = update_odds_history(data)
     (WEB / "data.json").write_text(json.dumps(data, separators=(",", ":")))
     from cs2p.og_image import render  # Pillow is only needed when publishing
-    render(data)
+    render(data, WEB / "og.png")
 
 
 def recent_results(m: pd.DataFrame, n: int = 8) -> dict[str, list[dict]]:

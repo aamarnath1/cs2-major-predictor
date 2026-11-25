@@ -117,7 +117,7 @@ def test_fetch_reconciles_later_field_with_previous_stage(
         state = live.fetch_state()
         assert state[1]["status"] == "complete"
         assert state[2]["status"] == "upcoming"
-        if field == "pending":
-            assert state[2]["seeds"] is None
+        if field == "pending":  # Liquipedia hasn't listed the field yet: seeding follows from the rulebook
+            assert state[2]["seeds"] == live.next_stage_seeds(2, state[1])
         else:
             assert state[2]["seeds"] == [name for name, _ in invites + qualifiers]
