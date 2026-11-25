@@ -1,0 +1,27 @@
+{
+  "note": "Roster news from the last ~60 days before the Major, each checked against the linked page. Shown on the site only; it does not change the odds.",
+  "checked": "2026-11-25",
+  "teams": {
+    "Vitality": [
+      {"kind": "stand-in", "text": "apEX plays instead of jL and still calls strategies", "source": "https://www.hltv.org/news/45950/pgl-reveals-singapore-major-rosters"}
+    ],
+    "Legacy": [
+      {"kind": "stand-in", "text": "n1ssim benched in October; ksloks starts, his first Major", "source": "https://community.skin.club/en/news/ksloks-to-replace-n1ssim-in-legacy-roster-until-the-end-of-2026"}
+    ],
+    "FUT": [
+      {"kind": "stand-in", "text": "cmtry left for Astralis; SunPayus plays as substitute", "source": "https://www.hltv.org/news/45850/cmtry-expected-to-miss-singapore-major-for-astralis-after-futs-quarter-final-exit-in-bucharest"}
+    ],
+    "Astralis": [
+      {"kind": "stand-in", "text": "Anlelele on loan, since new signing cmtry is ineligible", "source": "https://www.strafe.com/news/read/astralis-announce-cmtrys-replacement-for-singapore-major-2026/"}
+    ],
+    "9z": [
+      {"kind": "stand-in", "text": "AWPer meyern benched; history stands in", "source": "https://www.hltv.org/news/45940/9z-bench-meyern-add-history-as-major-stand-in"}
+    ],
+    "Ninjas in Pyjamas": [
+      {"kind": "new IGL", "text": "krimbo calls for the team, his first time in the role", "source": "https://community.skin.club/en/news/xizt-interview-on-nip-krimbo-adamb-and-singapore-major"}
+    ],
+    "The MongolZ": [
+      {"kind": "new roster", "text": "cobrazera and nin9 back in October; nin9 leads", "source": "https://www.strafe.com/news/read/the-mongolz-bring-back-cobrazera-and-nin9-to-complete-cs2-roster/"}
+    ]
+  }
+}

@@ -166,6 +166,10 @@ details.more > div { padding: 0 16px 16px; }
 .mu .meta { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--mute); gap: 6px; }
 .tag { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; border-radius: 6px; padding: 1px 7px; }
 .tag.flip { background: var(--accent-soft); color: var(--accent-text); } .tag.fav { background: var(--sunk); color: var(--ink-2); }
+.mkt { font-size: 12.5px; color: var(--mute); text-align: center; margin-top: 2px; }
+.mkt b { color: var(--ink-2); font-weight: 700; }
+.rflag { display: inline-block; margin-left: 6px; font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; border-radius: 6px; padding: 0 6px; background: var(--sunk); color: var(--ink-2); vertical-align: 1px; cursor: help; }
+.rnews { margin: 0; padding-left: 18px; } .rnews li { margin: 2px 0; } .rnews a { color: var(--accent-text); }
 .res { font-weight: 700; color: var(--win-text); }
 
 /* swiss paths */
@@ -294,6 +298,7 @@ footer a { color: var(--ink-2); }
 .compare .ours strong { color: var(--accent-text); }
 .tag.upset { background: var(--c03-soft); color: var(--loss-text); }
 .res.upset { color: var(--loss-text); }
+@media (min-width: 761px) { #scTiles:has(> :nth-child(4)) { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 760px) {
   .explain, .compare { grid-template-columns: 1fr; }
   .timeline { grid-template-columns: 1fr 1fr; }
@@ -688,7 +693,7 @@ function openTeam(team) {
   const slot = st?.picks ? Object.entries(st.picks).find(([, ts]) => ts.includes(team))?.[0] : null;
   const nm = st?.next_round?.matches.find(m => !m.winner && (m.a === team || m.b === team));
   const steps = [["Stage 2", r.entry === "Stage 1" ? r.stage2 : r.entry === "Stage 2" ? "in" : null], ["Stage 3", r.entry === "Stage 3" ? "in" : r.stage3], ["Playoffs", r.playoffs], ["Semis", r.semis], ["Final", r.final], ["Wins it", r.champion]];
-  const si = D.stand_in_notes?.[team], sc = D.stand_in_scenario?.teams?.[team];
+  const si = D.stand_in_notes?.[team], sc = D.stand_in_scenario?.teams?.[team], rf = D.roster_flags?.teams?.[team] || [];
   const recent = D.recent?.[team] || [];
   $("#tcLogo").innerHTML = TEAM_BRANDING[team] ? `<span class="team-logo ${TEAM_BRANDING[team].plate}"><img src="team-logos/${TEAM_BRANDING[team].asset}.webp" width="96" height="96" alt=""></span>` : "";
   $("#tcName").textContent = team;
@@ -697,7 +702,8 @@ function openTeam(team) {
       <p style="margin:0">${pct(t.p_qualify)} to advance (${pct(t.p_3_0)} 3-0, ${pct(t.p_0_3)} 0-3).${slot ? ` On our card: <b>${slot === "3-1/3-2" ? "Advance" : slot}</b>.` : " Not on our card."}${nm ? ` Next: vs ${esc(nm.a === team ? nm.b : nm.a)}, ${pct(nm.a === team ? nm.p_a : 1 - nm.p_a)} to win (${nm.bo === 3 ? "best-of-three" : "single map"}).` : ""}</p>` : ""}
     <h4>Chance to reach each round</h4>
     <div class="tcSteps">${steps.map(([l, v]) => `<div><b class="num">${v == null ? "–" : v === "in" ? "Invited" : pct(v)}</b>${l}</div>`).join("")}</div>
-    ${si ? `<h4>Stand-in</h4><p style="margin:0">${esc(si)}. Our ratings can’t see lineups, so the main forecast treats them at full strength.${sc ? ` If the stand-in costs them about ${-D.stand_in_scenario.elo} rating points (a guess, not a measurement): ${pct(sc.scenario.playoffs)} to make playoffs (vs ${pct(sc.base.playoffs)}), ${pct(sc.scenario.champion, 1)} to win (vs ${pct(sc.base.champion, 1)}).` : ""}</p>` : ""}
+    ${rf.length ? `<h4>Roster news</h4><ul class="rnews">${rf.map(x => `<li><b>${esc(x.kind)}:</b> ${esc(x.text)}${x.source ? ` (<a href="${esc(x.source)}" target="_blank" rel="noopener">source</a>)` : ""}</li>`).join("")}</ul><p class="small muted" style="margin:4px 0 0">We don’t change the odds for this: in our tests on past matches, adjusting for roster changes didn’t make forecasts more accurate.</p>` : ""}
+    ${si ? `<h4>${rf.length ? "Stand-in scenario" : "Stand-in"}</h4><p style="margin:0">${rf.length ? "" : `${esc(si)}. `}Our ratings can’t see lineups, so the main forecast treats them at full strength.${sc ? ` If the stand-in costs them about ${-D.stand_in_scenario.elo} rating points (a guess, not a measurement): ${pct(sc.scenario.playoffs)} to make playoffs (vs ${pct(sc.base.playoffs)}), ${pct(sc.scenario.champion, 1)} to win (vs ${pct(sc.base.champion, 1)}).` : ""}</p>` : ""}
     ${recent.length ? `<h4>Last ${recent.length} results</h4><div class="tcRes">${recent.map(x => `<span class="${x.won ? "w" : "l"}" title="${esc(x.date)}">${x.won ? "W" : "L"} ${esc(x.opp)}</span>`).join("")}</div>` : ""}`;
   $("#teamCard").showModal();
 }
@@ -974,15 +980,31 @@ function renderGuide() {
   $("#xpOdds").hidden = $("#odds").hidden;
 }
 
-function matchRow(m, fmt) {
+const pairKey = (stage, a, b) => `${stage}|${[a, b].sort().join("|")}`;
+let MKT = null;
+function marketP(stage, a, b) {  // Polymarket's chance for team a, or null
+  MKT ??= Object.fromEntries((D.market || []).map(e => [pairKey(e.stage, e.a, e.b), e]));
+  const e = MKT[pairKey(stage, a, b)];
+  return e ? (e.a === a ? e.p_a : 1 - e.p_a) : null;
+}
+function marketLine(stage, m) {
+  const p = marketP(stage, m.a, m.b);
+  return p == null ? "" : `<div class="mkt">Betting market: <b class="num">${split2(p)}</b></div>`;
+}
+function split2(p) { const a = Math.round(100 * p); return `${a}% / ${100 - a}%`; }  // sums to 100
+function flagMark(team) {
+  const f = D.roster_flags?.teams?.[team];
+  return f?.length ? `<span class="rflag" title="${esc(f.map(x => x.text).join("; "))}">${esc(f[0].kind)}</span>` : "";
+}
+function matchRow(m, fmt, stage) {
   const fav = m.p_a >= .5 ? m.a : m.b, pf = Math.max(m.p_a, 1 - m.p_a), w = m.winner, dog = fav === m.a ? m.b : m.a;
   const labels = splitLabels(m.p_a);
   const tag = pf < .55 ? `<span class="tag flip">Coin flip</span>` : pf < .6 ? `<span class="tag upset">Upset alert: ${esc(dog)}</span>` : `<span class="tag fav">Favoured: ${esc(fav)}</span>`;
   const upset = w && pf >= .55 && w !== fav;
   const result = w ? `<div class="meta"><span class="res ${upset ? "upset" : ""}">${upset ? `${pf >= .6 ? "Upset!" : "Underdog won:"} ${esc(w)} (had a ${pct(1 - pf)} chance)` : `✓ ${esc(w)} won`}</span>${fmt ? `<span class="small muted">${fmt}</span>` : ""}</div>`
     : `<div class="split" aria-hidden="true"><i style="width:${100 * m.p_a}%;background-color:${teamColor(m.a)}"></i><i class="${similarColors(m.a, m.b) ? "striped" : ""}" style="width:${100 * (1 - m.p_a)}%;background-color:${teamColor(m.b)}"></i></div>
-      <div class="meta"><span class="num">${labels[0]}</span>${tag}<span class="num">${labels[1]}</span></div>${fmt ? `<div class="small muted" style="text-align:center">${fmt}</div>` : ""}`;
-  return `<div class="mu"><div class="names"><span>${teamLabel(m.a)}</span><span>${teamLabel(m.b)}</span></div>${result}</div>`;
+      <div class="meta"><span class="num">${labels[0]}</span>${tag}<span class="num">${labels[1]}</span></div>${stage ? marketLine(stage, m) : ""}${fmt ? `<div class="small muted" style="text-align:center">${fmt}</div>` : ""}`;
+  return `<div class="mu"><div class="names"><span>${teamLabel(m.a)}${flagMark(m.a)}</span><span>${teamLabel(m.b)}${flagMark(m.b)}</span></div>${result}</div>`;
 }
 function renderNextRound(s) {
   const n = s.next_round;
@@ -991,8 +1013,8 @@ function renderNextRound(s) {
   const recOf = t => s.teams.find(x => x.team === t)?.record || [0, 0];
   $("#nrTitle").textContent = `Stage ${s.stage} · Round ${n.round}: who plays next`;
   const played = n.matches.filter(m => m.winner).length;
-  $("#nrIntro").innerHTML = `Swiss pairings follow from the results so far (teams with the same record meet, then the tiebreaker decides who plays whom), so we know them before they’re announced. ${played ? `${played} of ${n.matches.length} already played.` : ""} Win chances use our ratings as of this update.`;
-  $("#nr").innerHTML = n.matches.map(m => matchRow(m, `${recOf(m.a).join("-")} vs ${recOf(m.b).join("-")} · ${m.bo === 3 ? "best-of-three" : "single map"}${m.bo === 3 ? (recOf(m.a)[0] === 2 ? " · winner advances" : recOf(m.a)[1] === 2 ? " · loser is out" : "") : ""}`)).join("");
+  $("#nrIntro").innerHTML = `Swiss pairings follow from the results so far (teams with the same record meet, then the tiebreaker decides who plays whom), so we know them before they’re announced. ${played ? `${played} of ${n.matches.length} already played.` : ""} Win chances use our ratings as of this update${(D.market || []).some(e => e.stage === s.stage && !e.final) ? "; the betting-market line is Polymarket’s price, shown for comparison only" : ""}.`;
+  $("#nr").innerHTML = n.matches.map(m => matchRow(m, `${recOf(m.a).join("-")} vs ${recOf(m.b).join("-")} · ${m.bo === 3 ? "best-of-three" : "single map"}${m.bo === 3 ? (recOf(m.a)[0] === 2 ? " · winner advances" : recOf(m.a)[1] === 2 ? " · loser is out" : "") : ""}`, s.stage)).join("");
 }
 function scored() {
   return (D.forecasts || []).filter(e => e.winner).map(e => {
@@ -1011,8 +1033,13 @@ function renderScorecard() {
   $("#scTiles").innerHTML = `<div class="ours"><strong class="num">${fav}/${n}</strong>Favourites won (we expected about ${expFav.toFixed(1)})</div>
     <div><strong class="num">${ll.toFixed(3)}</strong>Our log-loss. A 50/50 guess scores 0.693; lower is better</div>
     <div><strong class="num">${brier.toFixed(3)}</strong>Brier score. A 50/50 guess scores 0.250; lower is better</div>`;
-  $("#scTable").innerHTML = `<table class="tbl"><tr><th>Stage · round</th><th>Match</th><th class="r">Our odds</th><th>Winner</th></tr>${sc.map(e =>
-    `<tr><td>S${e.stage} · R${e.round}</td><td>${esc(e.a)} vs ${esc(e.b)}</td><td class="r num">${pct(e.p_a)} / ${pct(1 - e.p_a)}</td><td class="${e.favWon ? "" : "res upset"}">${esc(e.winner)}${e.favWon ? "" : " (upset)"}</td></tr>`).join("")}</table>`;
+  const both = sc.map(e => ({ ...e, pm: marketP(e.stage, e.a, e.b) })).filter(e => e.pm != null);
+  if (both.length) {
+    const mll = both.reduce((a, e) => a - Math.log(Math.max(e.winner === e.a ? e.pm : 1 - e.pm, 1e-6)), 0) / both.length;
+    const oll = both.reduce((a, e) => a + e.ll, 0) / both.length;
+    $("#scTiles").innerHTML += `<div><strong class="num">${mll.toFixed(3)}</strong>Betting market’s log-loss on the ${both.length} of these it priced (ours: ${oll.toFixed(3)}). ${oll < mll ? "We’re ahead so far" : "The market is ahead so far"}</div>`;
+  }
+  $("#scTable").innerHTML = `<table class="tbl"><tr><th>Stage · round</th><th>Match</th><th class="r">Our odds</th><th class="r">Market</th><th>Winner</th></tr>${sc.map(e => { const pm = marketP(e.stage, e.a, e.b); return `<tr><td>S${e.stage} · R${e.round}</td><td>${esc(e.a)} vs ${esc(e.b)}</td><td class="r num">${pct(e.p_a)} / ${pct(1 - e.p_a)}</td><td class="r num">${pm == null ? "–" : split2(pm)}</td><td class="${e.favWon ? "" : "res upset"}">${esc(e.winner)}${e.favWon ? "" : " (upset)"}</td></tr>`; }).join("")}</table>`;
 }
 function renderRound1(s) {
   const fmt = s.stage === 3 ? "best-of-three" : "single map";
@@ -1028,8 +1055,8 @@ function renderRound1(s) {
     const upset = w && pf >= .55 && w !== fav;
     const result = w ? `<div class="meta"><span class="res ${upset ? "upset" : ""}">${upset ? `${pf >= .6 ? "Upset!" : "Underdog won:"} ${esc(w)} (had a ${pct(1 - pf)} chance)` : `✓ ${esc(w)} won`}</span></div>`
       : `<div class="split" aria-hidden="true"><i style="width:${100 * m.p_a}%;background-color:${teamColor(m.a)}"></i><i class="${similarColors(m.a, m.b) ? "striped" : ""}" style="width:${100 * (1 - m.p_a)}%;background-color:${teamColor(m.b)}"></i></div>
-      <div class="meta"><span class="num">${labels[0]}</span>${tag}<span class="num">${labels[1]}</span></div>`;
-    return `<div class="mu"><div class="names"><span>${teamLabel(m.a)}</span><span>${teamLabel(m.b)}</span></div>
+      <div class="meta"><span class="num">${labels[0]}</span>${tag}<span class="num">${labels[1]}</span></div>${marketLine(s.stage, m)}`;
+    return `<div class="mu"><div class="names"><span>${teamLabel(m.a)}${flagMark(m.a)}</span><span>${teamLabel(m.b)}${flagMark(m.b)}</span></div>
       ${result}</div>`;
   }).join("");
 }
