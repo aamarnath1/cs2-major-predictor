@@ -126,5 +126,53 @@
   "b": "DENDELE",
   "p_a": 0.5238,
   "made_at": "2026-11-24T20:00+00:00"
+ },
+ {
+  "stage": 1,
+  "round": 4,
+  "a": "M80",
+  "b": "Eternal Fire",
+  "p_a": 0.5121,
+  "made_at": "2026-11-25T15:15+00:00"
+ },
+ {
+  "stage": 1,
+  "round": 4,
+  "a": "Imperial",
+  "b": "Liquid",
+  "p_a": 0.494,
+  "made_at": "2026-11-25T15:15+00:00"
+ },
+ {
+  "stage": 1,
+  "round": 4,
+  "a": "Lynn Vision",
+  "b": "PARIVISION",
+  "p_a": 0.4662,
+  "made_at": "2026-11-25T15:15+00:00"
+ },
+ {
+  "stage": 1,
+  "round": 4,
+  "a": "HEROIC",
+  "b": "FaZe",
+  "p_a": 0.5455,
+  "made_at": "2026-11-25T15:15+00:00"
+ },
+ {
+  "stage": 1,
+  "round": 4,
+  "a": "100 Thieves",
+  "b": "9z",
+  "p_a": 0.5592,
+  "made_at": "2026-11-25T15:15+00:00"
+ },
+ {
+  "stage": 1,
+  "round": 4,
+  "a": "Wildcard",
+  "b": "Chinggis Warriors",
+  "p_a": 0.5916,
+  "made_at": "2026-11-25T15:15+00:00"
  }
 ]
