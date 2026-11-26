@@ -239,16 +239,16 @@
   "b": "Liquid",
   "p_a": 0.345,
   "start": "2026-11-26T11:20+00:00",
-  "final": false,
+  "final": true,
   "slug": "cs2-imp11-tl1-2026-11-26"
  },
  {
   "stage": 1,
   "a": "Wildcard",
   "b": "Chinggis Warriors",
-  "p_a": 0.685,
-  "start": "2026-11-26T12:00+00:00",
-  "final": false,
+  "p_a": 0.67,
+  "start": "2026-11-26T12:10+00:00",
+  "final": true,
   "slug": "cs2-wc1-cw-2026-11-26"
  }
 ]
