@@ -220,17 +220,17 @@
   "a": "Lynn Vision",
   "b": "PARIVISION",
   "p_a": 0.225,
-  "start": "2026-11-26T08:30+00:00",
-  "final": false,
+  "start": "2026-11-26T09:00+00:00",
+  "final": true,
   "slug": "cs2-lvg-pv-2026-11-26"
  },
  {
   "stage": 1,
   "a": "100 Thieves",
   "b": "9z",
-  "p_a": 0.585,
-  "start": "2026-11-26T08:30+00:00",
-  "final": false,
+  "p_a": 0.565,
+  "start": "2026-11-26T09:10+00:00",
+  "final": true,
   "slug": "cs2-100t-9z-2026-11-26"
  },
  {
