@@ -219,7 +219,7 @@
   "stage": 1,
   "a": "Lynn Vision",
   "b": "PARIVISION",
-  "p_a": 0.235,
+  "p_a": 0.225,
   "start": "2026-11-26T08:30+00:00",
   "final": false,
   "slug": "cs2-lvg-pv-2026-11-26"
@@ -237,7 +237,7 @@
   "stage": 1,
   "a": "Imperial",
   "b": "Liquid",
-  "p_a": 0.355,
+  "p_a": 0.345,
   "start": "2026-11-26T11:00+00:00",
   "final": false,
   "slug": "cs2-imp11-tl1-2026-11-26"
