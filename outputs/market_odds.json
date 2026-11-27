@@ -282,7 +282,7 @@
   "stage": 2,
   "a": "Nemiga",
   "b": "Ninjas in Pyjamas",
-  "p_a": 0.525,
+  "p_a": 0.535,
   "start": "2026-11-28T04:00+00:00",
   "final": false,
   "slug": "cs2-nemi1-nip-2026-11-27"
@@ -322,5 +322,14 @@
   "start": "2026-11-28T06:00+00:00",
   "final": false,
   "slug": "cs2-ast10-imp11-2026-11-28"
+ },
+ {
+  "stage": 2,
+  "a": "MIBR",
+  "b": "100 Thieves",
+  "p_a": 0.5,
+  "start": "2026-11-28T07:00+00:00",
+  "final": false,
+  "slug": "cs2-mibr-100t-2026-11-28"
  }
 ]

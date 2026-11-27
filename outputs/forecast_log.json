@@ -198,5 +198,69 @@
   "b": "HEROIC",
   "p_a": 0.4642,
   "made_at": "2026-11-27T02:17+00:00"
+ },
+ {
+  "stage": 2,
+  "round": 1,
+  "a": "FUT",
+  "b": "FlyQuest",
+  "p_a": 0.5619,
+  "made_at": "2026-11-27T15:13:48.294880+00:00"
+ },
+ {
+  "stage": 2,
+  "round": 1,
+  "a": "Nemiga",
+  "b": "Ninjas in Pyjamas",
+  "p_a": 0.5448,
+  "made_at": "2026-11-27T15:13:48.294880+00:00"
+ },
+ {
+  "stage": 2,
+  "round": 1,
+  "a": "G2",
+  "b": "Liquid",
+  "p_a": 0.586,
+  "made_at": "2026-11-27T15:13:48.294880+00:00"
+ },
+ {
+  "stage": 2,
+  "round": 1,
+  "a": "The One",
+  "b": "Eternal Fire",
+  "p_a": 0.5255,
+  "made_at": "2026-11-27T15:13:48.294880+00:00"
+ },
+ {
+  "stage": 2,
+  "round": 1,
+  "a": "Natus Vincere",
+  "b": "PARIVISION",
+  "p_a": 0.6409,
+  "made_at": "2026-11-27T15:13:48.294880+00:00"
+ },
+ {
+  "stage": 2,
+  "round": 1,
+  "a": "Astralis",
+  "b": "Imperial",
+  "p_a": 0.5666,
+  "made_at": "2026-11-27T15:13:48.294880+00:00"
+ },
+ {
+  "stage": 2,
+  "round": 1,
+  "a": "The MongolZ",
+  "b": "Lynn Vision",
+  "p_a": 0.6524,
+  "made_at": "2026-11-27T15:13:48.294880+00:00"
+ },
+ {
+  "stage": 2,
+  "round": 1,
+  "a": "MIBR",
+  "b": "100 Thieves",
+  "p_a": 0.4554,
+  "made_at": "2026-11-27T15:13:48.294880+00:00"
  }
 ]
