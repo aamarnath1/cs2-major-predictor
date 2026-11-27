@@ -277,5 +277,32 @@
   "start": "2026-11-27T11:00+00:00",
   "final": false,
   "slug": "cs2-m80-100t-2026-11-27"
+ },
+ {
+  "stage": 2,
+  "a": "The One",
+  "b": "Eternal Fire",
+  "p_a": 0.53,
+  "start": "2026-11-28T05:00+00:00",
+  "final": false,
+  "slug": "cs2-one6-ef1-2026-11-28"
+ },
+ {
+  "stage": 2,
+  "a": "G2",
+  "b": "Liquid",
+  "p_a": 0.545,
+  "start": "2026-11-28T05:00+00:00",
+  "final": false,
+  "slug": "cs2-g2-tl1-2026-11-28"
+ },
+ {
+  "stage": 2,
+  "a": "Natus Vincere",
+  "b": "PARIVISION",
+  "p_a": 0.65,
+  "start": "2026-11-28T06:00+00:00",
+  "final": false,
+  "slug": "cs2-navi-prv-2026-11-28"
  }
 ]
