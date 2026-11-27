@@ -257,7 +257,7 @@
   "b": "HEROIC",
   "p_a": 0.225,
   "start": "2026-11-27T06:00+00:00",
-  "final": false,
+  "final": true,
   "slug": "cs2-lvg-hero-2026-11-27"
  },
  {
