@@ -378,5 +378,43 @@
    "FaZe": 0.0,
    "Wildcard": 0.0
   }
+ },
+ {
+  "generated": "2026-11-27 01:13",
+  "n_results": 31,
+  "champion": {
+   "Vitality": 0.244,
+   "Spirit": 0.1976,
+   "MOUZ": 0.1834,
+   "FURIA": 0.1168,
+   "Falcons": 0.084,
+   "Aurora": 0.0364,
+   "Natus Vincere": 0.033,
+   "BetBoom": 0.0272,
+   "The MongolZ": 0.0216,
+   "FUT": 0.013,
+   "G2": 0.0074,
+   "Legacy": 0.007,
+   "Nemiga": 0.0048,
+   "FlyQuest": 0.004,
+   "Astralis": 0.0038,
+   "PARIVISION": 0.0032,
+   "The One": 0.003,
+   "Ninjas in Pyjamas": 0.0026,
+   "Eternal Fire": 0.0014,
+   "Liquid": 0.0014,
+   "Lynn Vision": 0.0012,
+   "MIBR": 0.0012,
+   "100 Thieves": 0.001,
+   "Imperial": 0.0006,
+   "M80": 0.0002,
+   "Wildcard": 0.0002,
+   "Chinggis Warriors": 0.0,
+   "GOSH": 0.0,
+   "FaZe": 0.0,
+   "HEROIC": 0.0,
+   "DENDELE": 0.0,
+   "9z": 0.0
+  }
  }
 ]
