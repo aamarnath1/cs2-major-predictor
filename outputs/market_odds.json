@@ -280,6 +280,15 @@
  },
  {
   "stage": 2,
+  "a": "Nemiga",
+  "b": "Ninjas in Pyjamas",
+  "p_a": 0.545,
+  "start": "2026-11-28T04:00+00:00",
+  "final": false,
+  "slug": "cs2-nemi1-nip-2026-11-27"
+ },
+ {
+  "stage": 2,
   "a": "The One",
   "b": "Eternal Fire",
   "p_a": 0.545,
@@ -291,7 +300,7 @@
   "stage": 2,
   "a": "G2",
   "b": "Liquid",
-  "p_a": 0.54,
+  "p_a": 0.535,
   "start": "2026-11-28T05:00+00:00",
   "final": false,
   "slug": "cs2-g2-tl1-2026-11-28"
@@ -304,5 +313,14 @@
   "start": "2026-11-28T06:00+00:00",
   "final": false,
   "slug": "cs2-navi-prv-2026-11-28"
+ },
+ {
+  "stage": 2,
+  "a": "Astralis",
+  "b": "Imperial",
+  "p_a": 0.56,
+  "start": "2026-11-28T06:00+00:00",
+  "final": false,
+  "slug": "cs2-ast10-imp11-2026-11-28"
  }
 ]
