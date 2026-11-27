@@ -255,16 +255,25 @@
   "stage": 1,
   "a": "Lynn Vision",
   "b": "HEROIC",
-  "p_a": 0.275,
+  "p_a": 0.225,
   "start": "2026-11-27T06:00+00:00",
   "final": false,
   "slug": "cs2-lvg-hero-2026-11-27"
  },
  {
   "stage": 1,
+  "a": "Imperial",
+  "b": "Wildcard",
+  "p_a": 0.615,
+  "start": "2026-11-27T08:30+00:00",
+  "final": false,
+  "slug": "cs2-imp11-wc1-2026-11-27"
+ },
+ {
+  "stage": 1,
   "a": "M80",
   "b": "100 Thieves",
-  "p_a": 0.5,
+  "p_a": 0.355,
   "start": "2026-11-27T11:00+00:00",
   "final": false,
   "slug": "cs2-m80-100t-2026-11-27"

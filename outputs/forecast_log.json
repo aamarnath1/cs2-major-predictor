@@ -174,5 +174,29 @@
   "b": "Chinggis Warriors",
   "p_a": 0.5916,
   "made_at": "2026-11-25T15:15+00:00"
+ },
+ {
+  "stage": 1,
+  "round": 5,
+  "a": "Imperial",
+  "b": "Wildcard",
+  "p_a": 0.5775,
+  "made_at": "2026-11-27T02:17+00:00"
+ },
+ {
+  "stage": 1,
+  "round": 5,
+  "a": "M80",
+  "b": "100 Thieves",
+  "p_a": 0.4272,
+  "made_at": "2026-11-27T02:17+00:00"
+ },
+ {
+  "stage": 1,
+  "round": 5,
+  "a": "Lynn Vision",
+  "b": "HEROIC",
+  "p_a": 0.4642,
+  "made_at": "2026-11-27T02:17+00:00"
  }
 ]
