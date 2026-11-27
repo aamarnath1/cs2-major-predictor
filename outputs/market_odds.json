@@ -266,7 +266,7 @@
   "b": "Wildcard",
   "p_a": 0.615,
   "start": "2026-11-27T08:30+00:00",
-  "final": false,
+  "final": true,
   "slug": "cs2-imp11-wc1-2026-11-27"
  },
  {
