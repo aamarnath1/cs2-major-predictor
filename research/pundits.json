@@ -20,6 +20,28 @@
        "picks": {"3-0": ["HEROIC", "100 Thieves"], "3-1/3-2": ["PARIVISION", "Liquid", "FaZe", "Ninjas in Pyjamas", "Eternal Fire", "GOSH"], "0-3": ["Chinggis Warriors", "Lynn Vision"]}},
       {"source": "Strafe", "via": null, "url": "https://www.strafe.com/news/read/pgl-major-singapore-pickems-guide-stage-1/", "published": "2026-11-19",
        "picks": {"3-0": ["PARIVISION", "HEROIC"], "3-1/3-2": ["100 Thieves", "GOSH", "Liquid", "FaZe", "M80", "9z"], "0-3": ["Ninjas in Pyjamas", "Wildcard"]}}
+    ],
+    "2": [
+      {"source": "fl0m", "via": "EGamersWorld", "url": "https://egamersworld.com/blog/pgl-major-singapore-2026-stage-2-pickem-prediction-AoPxQs-9k", "published": "2026-11-27",
+       "picks": {"3-0": ["FUT", "Natus Vincere"], "3-1/3-2": ["The MongolZ", "Liquid", "PARIVISION", "Nemiga", "The One", "Ninjas in Pyjamas"], "0-3": ["Imperial", "Lynn Vision"]}},
+      {"source": "Mauisnake", "via": "EGamersWorld", "url": "https://egamersworld.com/blog/pgl-major-singapore-2026-stage-2-pickem-prediction-AoPxQs-9k", "published": "2026-11-27",
+       "picks": {"3-0": ["FUT", "Natus Vincere"], "3-1/3-2": ["Ninjas in Pyjamas", "Liquid", "The MongolZ", "G2", "Nemiga", "100 Thieves"], "0-3": ["Imperial", "FlyQuest"]}},
+      {"source": "Tedd", "via": "EGamersWorld", "url": "https://egamersworld.com/blog/pgl-major-singapore-2026-stage-2-pickem-prediction-AoPxQs-9k", "published": "2026-11-27",
+       "picks": {"3-0": ["FUT", "Natus Vincere"], "3-1/3-2": ["The One", "Liquid", "MIBR", "G2", "The MongolZ", "Ninjas in Pyjamas"], "0-3": ["Imperial", "FlyQuest"]}},
+      {"source": "Buckethead", "via": "EGamersWorld", "url": "https://egamersworld.com/blog/pgl-major-singapore-2026-stage-2-pickem-prediction-AoPxQs-9k", "published": "2026-11-27",
+       "picks": {"3-0": ["FUT", "Liquid"], "3-1/3-2": ["Natus Vincere", "Nemiga", "PARIVISION", "The MongolZ", "Ninjas in Pyjamas", "100 Thieves"], "0-3": ["Imperial", "Lynn Vision"]}},
+      {"source": "EGamersWorld", "via": null, "url": "https://egamersworld.com/blog/pgl-major-singapore-2026-stage-2-pickem-prediction-AoPxQs-9k", "published": "2026-11-27",
+       "picks": {"3-0": ["Natus Vincere", "Nemiga"], "3-1/3-2": ["FUT", "The MongolZ", "Ninjas in Pyjamas", "The One", "MIBR", "G2"], "0-3": ["100 Thieves", "Lynn Vision"]}},
+      {"source": "TalkEsport", "via": null, "url": "https://www.talkesport.com/news/cs2/pgl-singapore-major-2026-stage-2-pickem-predictions/", "published": "2026-11-27",
+       "picks": {"3-0": ["Natus Vincere", "The MongolZ"], "3-1/3-2": ["G2", "FUT", "PARIVISION", "Nemiga", "Eternal Fire", "Liquid"], "0-3": ["FlyQuest", "Lynn Vision"]}},
+      {"source": "Strafe", "via": null, "url": "https://www.strafe.com/news/read/pgl-major-singapore-2026-stage-2-pick-em-guide/", "published": "2026-11-27",
+       "picks": {"3-0": ["FUT", "The MongolZ"], "3-1/3-2": ["Natus Vincere", "Nemiga", "Ninjas in Pyjamas", "FlyQuest", "PARIVISION", "The One"], "0-3": ["Imperial", "Lynn Vision"]}},
+      {"source": "pley.gg", "via": null, "url": "https://pley.gg/cs2/major-pickem-stage-2/", "published": "2026-11-27",
+       "picks": {"3-0": ["The MongolZ", "Natus Vincere"], "3-1/3-2": ["FUT", "Nemiga", "The One", "Ninjas in Pyjamas", "Eternal Fire", "FlyQuest"], "0-3": ["Lynn Vision", "100 Thieves"]}},
+      {"source": "CS.MONEY", "via": null, "url": "https://cs.money/blog/esports/pgl-singapore-2026-major-pickem-guide-for-stage-2/", "published": "2026-11-27",
+       "picks": {"3-0": ["PARIVISION", "Nemiga"], "3-1/3-2": ["FUT", "The One", "Natus Vincere", "The MongolZ", "Ninjas in Pyjamas", "G2"], "0-3": ["Lynn Vision", "Astralis"]}},
+      {"source": "SkinsMonkey", "via": null, "url": "https://skinsmonkey.com/blog/singapore-major-stage-2-pickem-predictions/", "published": "2026-11-27",
+       "picks": {"3-0": ["Natus Vincere", "FUT"], "3-1/3-2": ["PARIVISION", "G2", "Nemiga", "Ninjas in Pyjamas", "The MongolZ", "The One"], "0-3": ["Lynn Vision", "Imperial"]}}
     ]
   }
 }
