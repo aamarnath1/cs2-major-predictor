@@ -336,18 +336,18 @@
   "stage": 2,
   "a": "Nemiga",
   "b": "Lynn Vision",
-  "p_a": 0.705,
+  "p_a": 0.695,
   "start": "2026-11-28T09:20+00:00",
-  "final": false,
+  "final": true,
   "slug": "cs2-nemi1-lvg-2026-11-28"
  },
  {
   "stage": 2,
   "a": "G2",
   "b": "Ninjas in Pyjamas",
-  "p_a": 0.565,
+  "p_a": 0.555,
   "start": "2026-11-28T09:20+00:00",
-  "final": false,
+  "final": true,
   "slug": "cs2-g2-nip-2026-11-28"
  },
  {
@@ -355,8 +355,8 @@
   "a": "Liquid",
   "b": "Eternal Fire",
   "p_a": 0.555,
-  "start": "2026-11-28T10:30+00:00",
-  "final": false,
+  "start": "2026-11-28T10:10+00:00",
+  "final": true,
   "slug": "cs2-tl1-ef1-2026-11-28"
  },
  {
@@ -381,7 +381,7 @@
   "stage": 2,
   "a": "Natus Vincere",
   "b": "Astralis",
-  "p_a": 0.725,
+  "p_a": 0.715,
   "start": "2026-11-28T12:30+00:00",
   "final": false,
   "slug": "cs2-navi-ast10-2026-11-28"
