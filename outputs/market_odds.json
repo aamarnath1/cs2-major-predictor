@@ -364,15 +364,15 @@
   "a": "MIBR",
   "b": "Imperial",
   "p_a": 0.635,
-  "start": "2026-11-28T11:30+00:00",
-  "final": false,
+  "start": "2026-11-28T12:00+00:00",
+  "final": true,
   "slug": "cs2-mibr-imp11-2026-11-28"
  },
  {
   "stage": 2,
   "a": "FlyQuest",
   "b": "PARIVISION",
-  "p_a": 0.345,
+  "p_a": 0.335,
   "start": "2026-11-28T12:30+00:00",
   "final": false,
   "slug": "cs2-fly-pv-2026-11-28"
