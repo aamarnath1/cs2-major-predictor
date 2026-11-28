@@ -383,7 +383,7 @@
   "b": "PARIVISION",
   "p_a": 0.335,
   "start": "2026-11-28T13:30+00:00",
-  "final": false,
+  "final": true,
   "slug": "cs2-fly-pv-2026-11-28"
  }
 ]

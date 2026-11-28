@@ -326,5 +326,69 @@
   "b": "Eternal Fire",
   "p_a": 0.5175,
   "made_at": "2026-11-28T08:14+00:00"
+ },
+ {
+  "stage": 2,
+  "round": 3,
+  "a": "FUT",
+  "b": "Astralis",
+  "p_a": 0.5578,
+  "made_at": "2026-11-28T14:14+00:00"
+ },
+ {
+  "stage": 2,
+  "round": 3,
+  "a": "G2",
+  "b": "The One",
+  "p_a": 0.5744,
+  "made_at": "2026-11-28T14:14+00:00"
+ },
+ {
+  "stage": 2,
+  "round": 3,
+  "a": "Ninjas in Pyjamas",
+  "b": "MIBR",
+  "p_a": 0.5131,
+  "made_at": "2026-11-28T14:14+00:00"
+ },
+ {
+  "stage": 2,
+  "round": 3,
+  "a": "100 Thieves",
+  "b": "Nemiga",
+  "p_a": 0.5042,
+  "made_at": "2026-11-28T14:14+00:00"
+ },
+ {
+  "stage": 2,
+  "round": 3,
+  "a": "Natus Vincere",
+  "b": "Liquid",
+  "p_a": 0.6669,
+  "made_at": "2026-11-28T14:14+00:00"
+ },
+ {
+  "stage": 2,
+  "round": 3,
+  "a": "The MongolZ",
+  "b": "FlyQuest",
+  "p_a": 0.5958,
+  "made_at": "2026-11-28T14:14+00:00"
+ },
+ {
+  "stage": 2,
+  "round": 3,
+  "a": "Eternal Fire",
+  "b": "Lynn Vision",
+  "p_a": 0.4892,
+  "made_at": "2026-11-28T14:14+00:00"
+ },
+ {
+  "stage": 2,
+  "round": 3,
+  "a": "Imperial",
+  "b": "PARIVISION",
+  "p_a": 0.4518,
+  "made_at": "2026-11-28T14:14+00:00"
  }
 ]
