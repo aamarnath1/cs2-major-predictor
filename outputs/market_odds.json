@@ -282,9 +282,9 @@
   "stage": 2,
   "a": "Nemiga",
   "b": "Ninjas in Pyjamas",
-  "p_a": 0.535,
-  "start": "2026-11-28T05:00+00:00",
-  "final": false,
+  "p_a": 0.525,
+  "start": "2026-11-28T05:05+00:00",
+  "final": true,
   "slug": "cs2-nemi1-nip-2026-11-27"
  },
  {
@@ -292,15 +292,15 @@
   "a": "Astralis",
   "b": "Imperial",
   "p_a": 0.575,
-  "start": "2026-11-28T05:00+00:00",
-  "final": false,
+  "start": "2026-11-28T05:10+00:00",
+  "final": true,
   "slug": "cs2-ast10-imp11-2026-11-28"
  },
  {
   "stage": 2,
   "a": "The One",
   "b": "Eternal Fire",
-  "p_a": 0.515,
+  "p_a": 0.525,
   "start": "2026-11-28T06:00+00:00",
   "final": false,
   "slug": "cs2-one6-ef1-2026-11-28"
