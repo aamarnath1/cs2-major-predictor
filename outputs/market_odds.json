@@ -363,7 +363,7 @@
   "stage": 2,
   "a": "MIBR",
   "b": "Imperial",
-  "p_a": 0.615,
+  "p_a": 0.635,
   "start": "2026-11-28T11:30+00:00",
   "final": false,
   "slug": "cs2-mibr-imp11-2026-11-28"
@@ -381,7 +381,7 @@
   "stage": 2,
   "a": "Natus Vincere",
   "b": "Astralis",
-  "p_a": 0.715,
+  "p_a": 0.705,
   "start": "2026-11-28T12:30+00:00",
   "final": false,
   "slug": "cs2-navi-ast10-2026-11-28"
