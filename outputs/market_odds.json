@@ -318,18 +318,18 @@
   "stage": 2,
   "a": "Natus Vincere",
   "b": "PARIVISION",
-  "p_a": 0.585,
+  "p_a": 0.635,
   "start": "2026-11-28T07:15+00:00",
-  "final": false,
+  "final": true,
   "slug": "cs2-navi-prv-2026-11-28"
  },
  {
   "stage": 2,
   "a": "MIBR",
   "b": "100 Thieves",
-  "p_a": 0.515,
-  "start": "2026-11-28T07:15+00:00",
-  "final": false,
+  "p_a": 0.505,
+  "start": "2026-11-28T07:25+00:00",
+  "final": true,
   "slug": "cs2-mibr-100t-2026-11-28"
  }
 ]
